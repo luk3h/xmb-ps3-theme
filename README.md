@@ -8,7 +8,20 @@ A PlayStation 3 XMB-style **login screen**, **lock screen** and **Shut Down scre
 - "Restart the system?" Yes/No confirmations, then "Restarting..." and a fade to black
 - Smooth fades between the lock screen, login screen and desktop, across multiple monitors
 
-> Screenshots: add yours to `docs/` and link them here.
+
+## Screenshots
+
+| Login screen | Login screen: Options |
+|---|---|
+| ![Login screen with the user list](docs/login.jpg) | ![Login screen with the Options panel open](docs/login-options.jpg) |
+| **Lock screen** | **Lock screen: Options** |
+| ![Lock screen](docs/lock.jpg) | ![Lock screen with the Options panel open](docs/lock-options.jpg) |
+| **Restart confirmation** | **Turn off confirmation** |
+| ![Restart the system?](docs/restart-confirm.jpg) | ![Turn off the system?](docs/turnoff-confirm.jpg) |
+| **Shut Down screen (Ctrl+Alt+Del)** | **The XMB wave on the desktop** |
+| ![Shut Down power menu](docs/power-menu.jpg) | ![XMB wave wallpaper](docs/wave.jpg) |
+
+The wave changes colour through the day, like the PS3. These shots were taken at night.
 
 ---
 
@@ -99,7 +112,7 @@ If one monitor blinks or arrives late when switching between the lock screen, lo
 
 ## Credits & licence
 
-- **XMB wave shader** (`shaders/xmb-wave.frag.qsb`): from [this Shadertoy shader](https://www.shadertoy.com/view/fcf3Dn). Its author released it freely ("do whatever you want with this shader", MIT-style) and asked for a shout-out, so thank you! If you use this theme, go leave them a comment on Shadertoy.
+- **XMB wave shader** (`shaders/xmb-wave.frag.qsb`) by **[llmciv](https://www.shadertoy.com/user/llmciv)**, from [their Shadertoy shader](https://www.shadertoy.com/view/fcf3Dn). They released it freely ("do whatever you want with this shader", MIT-style) and asked for a shout-out, so thank you, llmciv! If you use this theme, go leave them a comment on Shadertoy.
 - Everything else is licensed under the **GNU GPL v3 or later** (see `LICENSE`).
 - The optional wave clock sync changes one line of **Shader Wallpaper** by @y4my4my4m (GPL-3.0); the original file is kept and restored by `uninstall.sh`.
 - Inspired by the PlayStation 3 XMB. This is a fan project, **not affiliated with or endorsed by Sony Interactive Entertainment**. It contains no Sony logos or assets; "PlayStation" and "PS3" are trademarks of their owners.
