@@ -1,0 +1,10 @@
+[SddmGreeterTheme]
+Name=XMB PS3
+Description=PlayStation 3 select-user style login screen
+Author=luk3h
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+Theme-Id=xmb-ps3
+Theme-API=2.0
+QtVersion=6

@@ -1,0 +1,10 @@
+singleton XmbSync 1.0 XmbSync.qml
+Avatar 1.0 Avatar.qml
+Clock 1.0 Clock.qml
+ConfirmDialog 1.0 ConfirmDialog.qml
+HintButton 1.0 HintButton.qml
+OptionRow 1.0 OptionRow.qml
+PasswordBox 1.0 PasswordBox.qml
+XmbBackground 1.0 XmbBackground.qml
+XmbItem 1.0 XmbItem.qml
+XmbLockScreen 1.0 XmbLockScreen.qml

@@ -1,0 +1,6 @@
+[Unit]
+Description=Apply the XMB lock screen
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/xmb-lockscreen-apply

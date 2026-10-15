@@ -1,0 +1,9 @@
+#!/bin/bash
+# Puts KDE's original lock screen back and stops re-applying the XMB one.
+D=/usr/share/plasma/shells/org.kde.plasma.desktop/contents/lockscreen
+systemctl disable --now xmb-lockscreen.path 2>/dev/null
+if [ -f "$D/LockScreen.breeze.qml" ]; then
+    mv "$D/LockScreen.breeze.qml" "$D/LockScreen.qml"
+fi
+rm -rf "$D/xmb"
+echo "KDE's original lock screen restored."

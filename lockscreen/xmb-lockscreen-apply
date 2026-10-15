@@ -1,0 +1,15 @@
+#!/bin/bash
+# Puts the XMB lock screen in place of KDE's. Safe to run any number of times.
+D=/usr/share/plasma/shells/org.kde.plasma.desktop/contents/lockscreen
+SRC=/usr/local/share/xmb-lockscreen
+F="$D/LockScreen.qml"
+[ -f "$F" ] || { echo "KDE lock screen file not found: $F"; exit 1; }
+# always refresh our files
+rm -rf "$D/xmb"
+cp -r "$SRC/xmb" "$D/xmb"
+# already ours? nothing else to do
+grep -q "XMB-LOCKSCREEN-SHIM" "$F" && exit 0
+# keep KDE's (possibly freshly updated) original, then swap in ours
+cp "$F" "$D/LockScreen.breeze.qml"
+cp "$SRC/LockScreen-shim.qml" "$F"
+echo "XMB lock screen applied."

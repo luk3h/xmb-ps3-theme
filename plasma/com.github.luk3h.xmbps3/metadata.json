@@ -1,0 +1,13 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Id": "com.github.luk3h.xmbps3",
+        "Name": "XMB PS3",
+        "Description": "PS3 XMB-style Shut Down screen and black splash. Everything else falls back to Breeze.",
+        "Authors": [ { "Name": "luk3h" } ],
+        "License": "GPL-3.0-or-later",
+        "Version": "1.0.0",
+        "Website": "https://github.com/luk3h/xmb-ps3-theme"
+    },
+    "X-Plasma-APIVersion": "2"
+}
