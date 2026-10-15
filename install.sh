@@ -92,6 +92,10 @@ if ! ls /usr/lib*/qt6/qml/QtQuick/Effects >/dev/null 2>&1 && ! ls /usr/lib/*/qt6
 fi
 
 # ---------------------------------------------------------------- find the wave shader
+# 1) --shader FILE   2) the copy bundled in this repo   3) one from the Shader Wallpaper plugin
+if [ -z "$SHADER" ] && [ -f "$HERE/shaders/xmb-wave.frag.qsb" ]; then
+    SHADER="$HERE/shaders/xmb-wave.frag.qsb"
+fi
 if [ -z "$SHADER" ]; then
     for c in \
         "$HOME/.local/share/plasma/wallpapers/$WP_ID/contents/ui/Shaders6/xmb-wave.frag.qsb" \
@@ -201,6 +205,14 @@ if [ "$DO_LEAVE" = 1 ] || [ "$DO_SPLASH" = 1 ]; then
         kwriteconfig6 --file ksplashrc --group KSplash --key Theme "$LNF_ID"
         ok "Black login splash enabled"
     fi
+fi
+
+# ---------------------------------------------------------------- matching desktop wallpaper
+# If Shader Wallpaper is installed, give it the XMB wave too so you can pick it as your wallpaper.
+WP_SHADERS="$HOME/.local/share/plasma/wallpapers/$WP_ID/contents/ui/Shaders6"
+if [ -n "$SHADER" ] && [ -d "$WP_SHADERS" ] && [ ! -f "$WP_SHADERS/xmb-wave.frag.qsb" ]; then
+    cp "$SHADER" "$WP_SHADERS/xmb-wave.frag.qsb"
+    ok "XMB wave added to Shader Wallpaper (pick it in Desktop and Wallpaper settings)"
 fi
 
 # ---------------------------------------------------------------- Shader Wallpaper clock sync

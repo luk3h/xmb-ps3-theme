@@ -38,9 +38,9 @@ A PlayStation 3 XMB-style **login screen**, **lock screen** and **Shut Down scre
 - **KDE Plasma 6** (tested on Plasma 6.7, Fedora 44) on Wayland
 - **SDDM** with the Qt 6 greeter (for the login screen)
 - `QtQuick.Effects` (part of Qt 6 declarative; installed with Plasma on most distros)
-- *Optional, recommended:* the **Shader Wallpaper** plugin (right-click desktop → Desktop and Wallpaper → Get New Plugins…) with an XMB wave shader, for the animated, time-of-day wave. Without it, the theme uses its own built-in wave images.
+- *Optional, recommended:* the **Shader Wallpaper** plugin (right-click desktop → Desktop and Wallpaper → Get New Plugins…), so your **desktop** gets the same animated XMB wave. The installer adds the wave to the plugin for you. Then pick **Shader Wallpaper** → **xmb-wave** in Desktop and Wallpaper settings.
 
-> The XMB wave shader itself isn't included in this repo. The installer copies it from your own Shader Wallpaper plugin if it finds one (any `*xmb*.frag.qsb`), or you can point it at one with `--shader FILE`.
+> The animated XMB wave shader is included in `shaders/` (see Credits). The login and lock screens use it automatically. Use `--shader FILE` to use a different one.
 
 ---
 
@@ -99,6 +99,7 @@ If one monitor blinks or arrives late when switching between the lock screen, lo
 
 ## Credits & licence
 
-- Licensed under the **GNU GPL v3 or later** (see `LICENSE`).
+- **XMB wave shader** (`shaders/xmb-wave.frag.qsb`): from [this Shadertoy shader](https://www.shadertoy.com/view/fcf3Dn). Its author released it freely ("do whatever you want with this shader", MIT-style) and asked for a shout-out, so thank you! If you use this theme, go leave them a comment on Shadertoy.
+- Everything else is licensed under the **GNU GPL v3 or later** (see `LICENSE`).
 - The optional wave clock sync changes one line of **Shader Wallpaper** by @y4my4my4m (GPL-3.0); the original file is kept and restored by `uninstall.sh`.
 - Inspired by the PlayStation 3 XMB. This is a fan project, **not affiliated with or endorsed by Sony Interactive Entertainment**. It contains no Sony logos or assets; "PlayStation" and "PS3" are trademarks of their owners.
