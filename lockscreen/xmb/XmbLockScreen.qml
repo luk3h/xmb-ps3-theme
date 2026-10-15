@@ -69,6 +69,7 @@ Item {
 
     // get keyboard focus on the main monitor straight away, no click needed
     function grabFocus() {
+        startAuth()
         if (!isPrimary) return
         if (Window.window) Window.window.requestActivate()
         if (confirm.open) return
@@ -84,8 +85,18 @@ Item {
         if (!switchFade.running) switchFade.restart()
     }
 
+    // start KDE's password checker on the main monitor - as soon as we know we ARE the main monitor
+    property bool authStarted: false
+    function startAuth() {
+        if (!isPrimary || authStarted) return
+        authStarted = true
+        authenticator.startAuthenticating()
+    }
+    onIsPrimaryChanged: startAuth()
+
     function unlock() {
         if (!isPrimary) return
+        if (!authStarted) { startAuth(); pamReady = false }   // checker wasn't running: start it, send when it asks
         if (busy) return
         if (password.text.length === 0) { password.shake(); return }
         busy = true
@@ -94,6 +105,7 @@ Item {
         hasPending = true
         retries = 0
         watchdog.restart()
+        quickRetry.restart()
         sendPending()
     }
     function sendPending() {
@@ -187,6 +199,12 @@ Item {
     Timer { id: statusTimer; interval: 3500; onTriggered: if (!busy) statusText = "" }
     // ask PAM for a new password prompt after a failure
     Timer { id: restartTimer; interval: 3000; onTriggered: if (root.isPrimary) authenticator.startAuthenticating() }
+    // password still waiting to be sent after 5 s? ask KDE's checker to start again; it sends when ready
+    Timer {
+        id: quickRetry
+        interval: 5000
+        onTriggered: if (root.busy && root.hasPending) { root.authStarted = true; authenticator.startAuthenticating() }
+    }
     // safety net: if nothing happens, reset so you can always type again
     Timer {
         id: watchdog
@@ -211,7 +229,7 @@ Item {
         // KDE's own wallpaper doesn't animate on the lock screen, so we draw the wave ourselves
         // and hide KDE's copy underneath to save GPU time.
         if (typeof wallpaper !== "undefined" && wallpaper) wallpaper.visible = false
-        if (isPrimary) authenticator.startAuthenticating()
+        startAuth()
         password.focusInput()
     }
 
