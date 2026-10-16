@@ -12,15 +12,40 @@ A PlayStation 3 XMB-style **login screen**, **lock screen** and **Shut Down scre
 
 ## Screenshots
 
-| Login screen | Login screen: Options |
-|---|---|
-| ![Login screen with the user list](docs/login.jpg) | ![Login screen with the Options panel open](docs/login-options.jpg) |
-| **Lock screen** | **Lock screen: Options** |
-| ![Lock screen](docs/lock.jpg) | ![Lock screen with the Options panel open](docs/lock-options.jpg) |
-| **Restart confirmation** | **Turn off confirmation** |
-| ![Restart the system?](docs/restart-confirm.jpg) | ![Turn off the system?](docs/turnoff-confirm.jpg) |
-| **Shut Down screen (Ctrl+Alt+Del)** | **The XMB wave on the desktop** |
-| ![Shut Down power menu](docs/power-menu.jpg) | ![XMB wave wallpaper](docs/wave.jpg) |
+<table>
+  <tr>
+    <th width="50%">Login screen</th>
+    <th width="50%">Login screen: Options</th>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/login.jpg" alt="Login screen with the user list" width="100%"></td>
+    <td width="50%"><img src="docs/login-options.jpg" alt="Login screen with the Options panel open" width="100%"></td>
+  </tr>
+  <tr>
+    <th width="50%">Lock screen</th>
+    <th width="50%">Lock screen: Options</th>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/lock.jpg" alt="Lock screen" width="100%"></td>
+    <td width="50%"><img src="docs/lock-options.jpg" alt="Lock screen with the Options panel open" width="100%"></td>
+  </tr>
+  <tr>
+    <th width="50%">Restart confirmation</th>
+    <th width="50%">Turn off confirmation</th>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/restart-confirm.jpg" alt="Restart the system?" width="100%"></td>
+    <td width="50%"><img src="docs/turnoff-confirm.jpg" alt="Turn off the system?" width="100%"></td>
+  </tr>
+  <tr>
+    <th width="50%">Shut Down screen (Ctrl+Alt+Del)</th>
+    <th width="50%">The XMB wave on the desktop</th>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/power-menu.jpg" alt="Shut Down power menu" width="100%"></td>
+    <td width="50%"><img src="docs/wave.jpg" alt="XMB wave wallpaper" width="100%"></td>
+  </tr>
+</table>
 
 The wave changes colour through the day, like the PS3: each shot shows a different hour (blue, purple, crimson, gold, green, teal, magenta).
 
