@@ -238,11 +238,14 @@ if [ -n "$SOUND_DIR" ] && [ "$SOUNDS" = 1 ]; then
             [ -f "$SOUND_DIR/$n.$ext" ] && { src="$SOUND_DIR/$n.$ext"; break; }
         done
         [ -n "$src" ] || continue
-        if [ "${src##*.}" = wav ]; then
-            cp "$src" "$CUSTOM_SOUNDS/$n.wav"
-        elif command -v ffmpeg >/dev/null; then
-            ffmpeg -loglevel error -y -i "$src" -ac 2 -ar 48000 -c:a pcm_s16le "$CUSTOM_SOUNDS/$n.wav" \
+        # convert to a plain .wav, padded with silence to at least 0.3 s: Qt drops sounds shorter
+        # than one audio buffer, which made very short clicks (e.g. 0.05 s) silent
+        if command -v ffmpeg >/dev/null; then
+            ffmpeg -nostdin -loglevel error -y -i "$src" -af "apad=whole_dur=0.3" -ac 2 -ar 48000 -c:a pcm_s16le "$CUSTOM_SOUNDS/$n.wav" \
                 || die "--sounds: couldn't convert $src"
+        elif [ "${src##*.}" = wav ]; then
+            cp "$src" "$CUSTOM_SOUNDS/$n.wav"
+            warn "--sounds: ffmpeg not found - $n.wav is used as it is (very short sounds may be silent)"
         else
             die "--sounds: $src needs converting to .wav - install ffmpeg (Fedora: sudo dnf install ffmpeg-free) or convert it yourself"
         fi
