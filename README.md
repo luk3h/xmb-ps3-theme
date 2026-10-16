@@ -154,7 +154,7 @@ If one monitor blinks or arrives late when switching between the lock screen, lo
 
 ## Credits & licence
 
-- **XMB wave shader** (`shaders/xmb-wave.frag.qsb`) by **[llmciv](https://www.shadertoy.com/user/llmciv)**, from [their Shadertoy shader](https://www.shadertoy.com/view/fcf3Dn). They released it freely ("do whatever you want with this shader", MIT-style) and asked for a shout-out, so thank you, llmciv! If you use this theme, go leave them a comment on Shadertoy.
+- **XMB wave shader** (`shaders/`): originally ["PS3 Menu effect"](https://www.shadertoy.com/view/tXy3DK) by **[int_45h](https://www.shadertoy.com/user/int_45h)**, who released it freely ("do whatever you want with this shader... if you can leave a comment or something or hit me up, that'd be dope"). Updated as ["Ps3 XMB 3.0 Background"](https://www.shadertoy.com/view/fcf3Dn) by **[llmciv](https://www.shadertoy.com/user/llmciv)** (dithering, smoother raymarching, anti-aliasing, time-of-day colours). Starfield based on xaot88's, hash function after Dave Hoskins. Converted for Qt 6 with an hourly colour palette for this theme. The source is included; see [`shaders/README.md`](shaders/README.md) for the full credits and how to change the wave. Thank you, int_45h and llmciv! If you use this theme, go leave them a comment on Shadertoy.
 - Everything else is licensed under the **GNU GPL v3 or later** (see `LICENSE`).
 - The optional wave clock sync changes one line of **Shader Wallpaper** by @y4my4my4m (GPL-3.0); the original file is kept and restored by `uninstall.sh`.
 - Inspired by the PlayStation 3 XMB. This is a fan project, **not affiliated with or endorsed by Sony Interactive Entertainment**. It contains no Sony logos or assets; "PlayStation" and "PS3" are trademarks of their owners.
