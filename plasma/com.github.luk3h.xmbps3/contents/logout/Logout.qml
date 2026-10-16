@@ -82,6 +82,7 @@ Item {
         return a
     }
     property int sel: 0
+    onSelChanged: sfxPlay("move")
     property bool done: false
 
     function busyTextFor(act) {
@@ -94,6 +95,7 @@ Item {
     function run(act) {
         if (done) return
         done = true
+        sfxPlay("select")
         countdown.stop()
         confirm.showBusy(busyTextFor(act))
         pendingAct = act
@@ -112,7 +114,7 @@ Item {
             else if (a === "hibernate") root.suspendRequested(4)
         }
     }
-    function cancel() { if (!done) root.cancelRequested() }
+    function cancel() { if (!done) { sfxPlay("back"); root.cancelRequested() } }
 
     // the single action KDE asked for (e.g. you clicked "Restart" in the menu)
     readonly property string directAct: type === tReboot ? "reboot" : (type === tHalt ? "off" : "logout")
@@ -271,5 +273,18 @@ Item {
                 : ""
         onAccepted: if (root.isPrimary) root.run(root.directAct)
         onRejected: root.cancel()
+    }
+
+    // ---- menu sounds (optional) ----
+    // Only the main monitor plays them (every monitor gets the same key presses). The installer adds
+    // assets/sounds-off.png for --no-sounds; a missing Qt Multimedia just means no sound.
+    Image { id: soundsOff; visible: false; asynchronous: false; source: "assets/sounds-off.png" }
+    Loader { id: sfx; active: root.isPrimary && soundsOff.status !== Image.Ready; source: "XmbSounds.qml" }
+    function sfxPlay(name) { if (sfx.item) sfx.item.play(name) }
+    Connections {
+        target: confirm
+        function onChoiceChanged() { if (confirm.open) root.sfxPlay("move") }
+        function onAccepted() { root.sfxPlay("select") }
+        function onRejected() { root.sfxPlay("back") }
     }
 }

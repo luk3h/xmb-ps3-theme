@@ -89,6 +89,7 @@ Item {
     }
     function goOtherUser() {
         if (!isPrimary) return
+        sfxPlay("select")
         if (previewMode) { previewSay("go to the login screen"); return }
         if (!switchFade.running) switchFade.restart()
     }
@@ -106,8 +107,9 @@ Item {
         if (!isPrimary) return
         if (!authStarted) { startAuth(); pamReady = false }   // checker wasn't running: start it, send when it asks
         if (busy) return
-        if (password.text.length === 0) { statusText = "Type your password first."; statusTimer.restart(); password.shake(false); return }
+        if (password.text.length === 0) { statusText = "Type your password first."; statusTimer.restart(); password.shake(false); sfxPlay("error"); return }
         busy = true
+        sfxPlay("select")
         statusText = "Checking password..."
         pending = password.text
         hasPending = true
@@ -161,7 +163,21 @@ Item {
         else if (act === "hibernate") sm.hibernate()
     }
     function afterDialog() { password.focusInput() }
+    // keys + their sounds (Enter's sounds come from unlock() / goOtherUser() / the dialog)
     function handleKey(event) {
+        var wasOpen = optionsOpen, before = optionsOpen ? optIdx : userSel
+        handleKeyInner(event)
+        if (!event.accepted) return
+        var k = event.key
+        if (k === Qt.Key_Up || k === Qt.Key_Down) {
+            if (wasOpen === optionsOpen && before !== (optionsOpen ? optIdx : userSel)) sfxPlay("move")
+        } else if (wasOpen !== optionsOpen && !(k === Qt.Key_Return || k === Qt.Key_Enter)) {
+            sfxPlay(optionsOpen ? "select" : "back")
+        } else if (wasOpen && (k === Qt.Key_Return || k === Qt.Key_Enter)) {
+            sfxPlay("select")
+        }
+    }
+    function handleKeyInner(event) {
         var k = event.key
         if (optionsOpen) {
             if (k === Qt.Key_Up) optIdx = Math.max(0, optIdx - 1)
@@ -194,6 +210,7 @@ Item {
             password.clear()
             statusText = "The password is incorrect."
             password.shake(true)
+            root.sfxPlay("error")
             statusTimer.restart()
             restartTimer.restart()
         }
@@ -532,4 +549,19 @@ Item {
         anchors.top: parent.top; anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 24 * root.s
     }
+
+    // ---- menu sounds (optional) ----
+    // Only the main monitor plays them (every monitor gets the same key presses). The installer adds
+    // assets/sounds-off.png for --no-sounds; a missing Qt Multimedia just means no sound.
+    Image { id: soundsOff; visible: false; asynchronous: false; source: "assets/sounds-off.png" }
+    Loader { id: sfx; active: root.isPrimary && soundsOff.status !== Image.Ready; source: "XmbSounds.qml" }
+    function sfxPlay(name) { if (sfx.item) sfx.item.play(name) }
+    Connections {
+        target: confirm
+        function onChoiceChanged() { if (confirm.open) root.sfxPlay("move") }
+        function onAccepted() { root.sfxPlay("select") }
+        function onRejected() { root.sfxPlay("back") }
+    }
+    // a soft chime as the lock screen appears
+    Timer { interval: 250; running: root.isPrimary; onTriggered: root.sfxPlay("open") }
 }

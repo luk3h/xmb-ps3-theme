@@ -30,6 +30,7 @@ ASSUME_YES=0
 USE_SDDM=0
 STILL_WAVE=auto
 CHOOSE=0
+SOUNDS=1
 LOCK_ME=""        # on / off: use the shared XMB lock screen for this account or not
 
 usage() {
@@ -49,6 +50,7 @@ Usage: ./install.sh [options]
   --still-wave      keep the login/lock wave still (automatic in virtual machines; saves CPU
                     on PCs without a proper graphics card)
   --moving-wave     always animate the wave, even in a virtual machine
+  --no-sounds       no menu sounds on the login, lock and Shut Down screens
   --choose          ask about each part one by one (good for a second user on the same PC)
   --lock-off-for-me use KDE's normal lock screen for your account (the XMB one stays for others)
   --lock-on-for-me  use the XMB lock screen for your account again
@@ -63,6 +65,7 @@ while [ $# -gt 0 ]; do
         --use-sddm) USE_SDDM=1 ;;
         --still-wave) STILL_WAVE=1 ;;
         --choose) CHOOSE=1 ;;
+        --no-sounds) SOUNDS=0 ;;
         --lock-off-for-me) LOCK_ME=off ;;
         --lock-on-for-me) LOCK_ME=on ;;
         --moving-wave) STILL_WAVE=0 ;;
@@ -124,6 +127,9 @@ if [ "$DO_LOCK" = 1 ] && [ ! -f "$SHELL_LOCK/LockScreen.qml" ]; then
     warn "KDE's lock screen file wasn't found at $SHELL_LOCK - skipping the lock screen."
     DO_LOCK=0
 fi
+if [ "$SOUNDS" = 1 ] && ! ls -d /usr/lib*/qt6/qml/QtMultimedia /usr/lib/*/qt6/qml/QtMultimedia >/dev/null 2>&1; then
+    warn "Qt Multimedia wasn't found, so the menu sounds will be silent (Fedora: sudo dnf install qt6-qtmultimedia)."
+fi
 if ! ls /usr/lib*/qt6/qml/QtQuick/Effects >/dev/null 2>&1 && ! ls /usr/lib/*/qt6/qml/QtQuick/Effects >/dev/null 2>&1; then
     warn "QtQuick.Effects wasn't found. Round profile pictures need it (usually in your distro's qt6 declarative package)."
 fi
@@ -156,6 +162,8 @@ if [ "$STILL_WAVE" = auto ]; then
     fi
 fi
 # a tiny marker image; the login and lock screens look for it
+# the same trick for --no-sounds
+mark_quiet() { [ "$SOUNDS" = 0 ] && ${2:-sudo} install -m 644 "$HERE/lockscreen/xmb/assets/sparkle.png" "$1/assets/sounds-off.png"; return 0; }
 mark_still() { [ "$STILL_WAVE" = 1 ] && sudo install -m 644 "$HERE/lockscreen/xmb/assets/sparkle.png" "$1/assets/still.png"; return 0; }
 
 # ---------------------------------------------------------------- what's already here
@@ -193,6 +201,9 @@ if [ "$CHOOSE" = 1 ]; then
     if [ "$DO_LOGIN" = 1 ] && [ "$DO_DISPLAYS" = 1 ]; then
         ask "  Give the login screen your monitor setup (shared)?" || DO_DISPLAYS=0
     fi
+    if [ "$SOUNDS" = 1 ] && { [ "$DO_LOGIN" = 1 ] || [ "$DO_LOCK" = 1 ] || [ "$DO_LEAVE" = 1 ]; }; then
+        ask "  PS3-style menu sounds on the screens you're installing?" || SOUNDS=0
+    fi
     echo
 fi
 [ "$LOCK_ME" = off ] && [ "$DO_LOCK" = 1 ] && warn "--lock-off-for-me: the lock screen is still installed for others; your account uses KDE's normal one."
@@ -216,6 +227,7 @@ else
     echo "    Wave clock sync ......... skipped (Shader Wallpaper isn't installed - see the README, then run this again)"
 fi
 echo "    Copy monitor setup ...... $([ $DO_DISPLAYS = 1 ] && [ $DO_LOGIN = 1 ] && echo yes || echo no)"
+echo "    Menu sounds ............. $([ $SOUNDS = 1 ] && echo yes || echo no)"
 echo "    Login/lock wave ......... $([ $STILL_WAVE = 1 ] && echo "still$([ -n "$VIRT" ] && echo " (virtual machine detected: $VIRT; use --moving-wave to animate)")" || echo moving)"
 if [ -n "$SHADER" ]; then
     echo "    Wave shader ............. $SHADER"
@@ -244,6 +256,7 @@ if [ "$DO_LOGIN" = 1 ]; then
     sudo cp -r "$HERE/sddm/xmb-ps3" "$SDDM_THEME_DIR"
     [ -n "$SHADER" ] && sudo install -m 644 "$SHADER" "$SDDM_THEME_DIR/xmb-wave.frag.qsb"
     mark_still "$SDDM_THEME_DIR"
+    mark_quiet "$SDDM_THEME_DIR"
     # the login screen runs as the sddm user: make sure it can read everything, whatever the
     # permissions of the files we copied from (a private file would silently fall back to the blue picture)
     sudo chmod -R u+rwX,go+rX,go-w "$SDDM_THEME_DIR"
@@ -298,6 +311,7 @@ if [ "$DO_LOCK" = 1 ]; then
     sudo cp "$HERE/lockscreen/LockScreen-shim.qml" /usr/local/share/xmb-lockscreen/
     [ -n "$SHADER" ] && sudo install -m 644 "$SHADER" /usr/local/share/xmb-lockscreen/xmb/xmb-wave.frag.qsb
     mark_still /usr/local/share/xmb-lockscreen/xmb
+    mark_quiet /usr/local/share/xmb-lockscreen/xmb
     sudo chmod -R u+rwX,go+rX,go-w /usr/local/share/xmb-lockscreen   # the lock screen runs as each user
     sudo install -m 755 "$HERE/lockscreen/xmb-lockscreen-apply" "$HERE/lockscreen/xmb-lockscreen-restore" /usr/local/bin/
     sudo install -m 644 "$HERE/lockscreen/xmb-lockscreen.path" "$HERE/lockscreen/xmb-lockscreen.service" /etc/systemd/system/
@@ -325,6 +339,7 @@ if [ "$DO_LEAVE" = 1 ] || [ "$DO_SPLASH" = 1 ]; then
     cp -r "$HERE/plasma/$LNF_ID" "$LNF_DIR"
     [ "$DO_LEAVE" = 1 ]  || rm -rf "$LNF_DIR/contents/logout"
     [ "$DO_SPLASH" = 1 ] || rm -rf "$LNF_DIR/contents/splash"
+    [ -d "$LNF_DIR/contents/logout" ] && mark_quiet "$LNF_DIR/contents/logout" command
 
     if [ "$DO_LEAVE" = 1 ]; then
         save_state lookandfeel "$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)"

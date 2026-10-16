@@ -7,6 +7,7 @@ A PlayStation 3 XMB-style **login screen**, **lock screen** and **Shut Down scre
 - A clock box, `[Tab] Options` / `[Enter] Sign In` key hints and a slide-in Options panel
 - "Restart the system?" Yes/No confirmations, then "Restarting..." and a fade to black
 - Smooth fades between the lock screen, login screen and desktop, across multiple monitors
+- Soft PS3-style menu sounds (original, made for this theme; `--no-sounds` turns them off)
 
 
 ## Screenshots
@@ -51,6 +52,7 @@ The wave changes colour through the day, like the PS3. These shots were taken at
 - **KDE Plasma 6** (tested on Plasma 6.7, Fedora 44) on Wayland
 - **SDDM** with the Qt 6 greeter (for the login screen). See [Fedora 44+ and Plasma Login Manager](#fedora-44-and-plasma-login-manager) if your distro uses something else.
 - `QtQuick.Effects` (part of Qt 6 declarative; installed with Plasma on most distros)
+- *For the menu sounds:* Qt Multimedia (`qt6-qtmultimedia` on Fedora; usually already installed with Plasma). Without it everything works, just silently
 - *Optional, recommended:* the **Shader Wallpaper** plugin, so your **desktop** gets the same animated XMB wave. See [The wave on your desktop](#the-wave-on-your-desktop-shader-wallpaper) below. Install it **before** running `./install.sh`, or just run `./install.sh` again afterwards.
 
 > The animated XMB wave shader is included in `shaders/` (see Credits). The login and lock screens use it automatically. Use `--shader FILE` to use a different one.
@@ -86,6 +88,7 @@ Add any of these after `./install.sh`, e.g. `./install.sh --no-splash --yes`:
 | `--no-sync` | Don't change Shader Wallpaper (the desktop wave won't line up with the login/lock wave) | Just you |
 | `--no-displays` | Don't copy your monitor setup to the login screen | Everyone |
 | `--use-sddm` | Switch to SDDM if your PC uses another login manager ([see below](#fedora-44-and-plasma-login-manager)) | Everyone |
+| `--no-sounds` | No menu sounds on the login, lock and Shut Down screens | Everyone (login/lock), just you (Shut Down) |
 | `--still-wave` | Keep the login/lock wave still (saves CPU on PCs without a proper graphics card) | Everyone |
 | `--moving-wave` | Animate the wave even in a virtual machine | Everyone |
 | `--shader FILE` | Use a different compiled wave shader (`.frag.qsb`) | Everyone |
@@ -176,6 +179,7 @@ If one monitor blinks or arrives late when switching between the lock screen, lo
 ## Credits & licence
 
 - **XMB wave shader** (`shaders/`): originally ["PS3 Menu effect"](https://www.shadertoy.com/view/tXy3DK) by **[int_45h](https://www.shadertoy.com/user/int_45h)**, who released it freely ("do whatever you want with this shader... if you can leave a comment or something or hit me up, that'd be dope"). Updated as ["Ps3 XMB 3.0 Background"](https://www.shadertoy.com/view/fcf3Dn) by **[llmciv](https://www.shadertoy.com/user/llmciv)** (dithering, smoother raymarching, anti-aliasing, time-of-day colours). Starfield based on xaot88's, hash function after Dave Hoskins. Converted for Qt 6 with an hourly colour palette for this theme. The source is included; see [`shaders/README.md`](shaders/README.md) for the full credits and how to change the wave. Thank you, int_45h and llmciv! If you use this theme, go leave them a comment on Shadertoy.
+- **Menu sounds** (`sounds/`): original, generated from sine tones for this theme (see [`sounds/README.md`](sounds/README.md)). No Sony audio is used.
 - Everything else is licensed under the **GNU GPL v3 or later** (see `LICENSE`).
 - The optional wave clock sync changes one line of **Shader Wallpaper** by @y4my4my4m (GPL-3.0); the original file is kept and restored by `uninstall.sh`.
 - Inspired by the PlayStation 3 XMB. This is a fan project, **not affiliated with or endorsed by Sony Interactive Entertainment**. It contains no Sony logos or assets; "PlayStation" and "PS3" are trademarks of their owners.

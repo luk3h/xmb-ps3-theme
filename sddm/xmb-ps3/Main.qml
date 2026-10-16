@@ -68,8 +68,9 @@ Rectangle {
         if (busy) return
         var u = userRep.itemAt(userIdx)
         if (!u) return
-        if (password.text.length === 0) { statusText = "Type your password first."; statusTimer.restart(); password.shake(false); return }
+        if (password.text.length === 0) { statusText = "Type your password first."; statusTimer.restart(); password.shake(false); sfxPlay("error"); return }
         busy = true
+        sfxPlay("select")
         statusText = "Checking password..."
         loginWatchdog.restart()
         pendingUser = u.uName
@@ -121,7 +122,21 @@ Rectangle {
         else if (act === "suspend") sddm.suspend()
     }
     function afterDialog() { focusRight() }
+    // keys + their sounds (Enter's sounds come from login() / activateOption())
     function handleKey(event) {
+        var wasOpen = optionsOpen, before = optionsOpen ? optIdx : userIdx
+        handleKeyInner(event)
+        if (!event.accepted) return
+        var k = event.key
+        if (k === Qt.Key_Up || k === Qt.Key_Down) {
+            if (wasOpen === optionsOpen && before !== (optionsOpen ? optIdx : userIdx)) sfxPlay("move")
+        } else if (wasOpen !== optionsOpen && !(k === Qt.Key_Return || k === Qt.Key_Enter)) {
+            sfxPlay(optionsOpen ? "select" : "back")
+        } else if (wasOpen && (k === Qt.Key_Return || k === Qt.Key_Enter)) {
+            sfxPlay("select")
+        }
+    }
+    function handleKeyInner(event) {
         var k = event.key
         if (optionsOpen) {
             if (k === Qt.Key_Up) optIdx = Math.max(0, optIdx - 1)
@@ -148,6 +163,7 @@ Rectangle {
             statusText = "The password is incorrect."
             statusTimer.restart()
             password.shake(true)
+            root.sfxPlay("error")
             focusRight()
         }
         function onLoginSucceeded() {
@@ -399,7 +415,7 @@ Rectangle {
     // main monitor: once it's drawn, tell every monitor to fade in together.
     // Straight after a restart the monitors are still waking up, so wait longer then.
     property int arriveDelay: 300
-    Timer { id: arriveTimer; interval: root.arriveDelay; onTriggered: root.broadcast("arrive") }
+    Timer { id: arriveTimer; interval: root.arriveDelay; onTriggered: { root.broadcast("arrive"); root.sfxPlay("open") } }
     function checkUptime() {
         // /proc/uptime = seconds since the PC started (needs QML_XHR_ALLOW_FILE_READ=1 for SDDM)
         var xhr = new XMLHttpRequest()
@@ -485,5 +501,18 @@ Rectangle {
         anchors.top: parent.top; anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 24 * root.s
         onClicked: root.exitPreview()
+    }
+
+    // ---- menu sounds (optional) ----
+    // Only the main monitor plays them (every monitor gets the same key presses). The installer adds
+    // assets/sounds-off.png for --no-sounds; a missing Qt Multimedia just means no sound.
+    Image { id: soundsOff; visible: false; asynchronous: false; source: "assets/sounds-off.png" }
+    Loader { id: sfx; active: root.showUi && soundsOff.status !== Image.Ready; source: "XmbSounds.qml" }
+    function sfxPlay(name) { if (sfx.item) sfx.item.play(name) }
+    Connections {
+        target: confirm
+        function onChoiceChanged() { if (confirm.open) root.sfxPlay("move") }
+        function onAccepted() { root.sfxPlay("select") }
+        function onRejected() { root.sfxPlay("back") }
     }
 }
