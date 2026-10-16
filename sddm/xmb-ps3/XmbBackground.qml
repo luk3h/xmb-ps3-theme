@@ -9,6 +9,22 @@ Item {
     // Still wave: the installer adds assets/still.png in virtual machines (or with --still-wave).
     // Without a graphics card, redrawing the whole screen 60 times a second is very heavy.
     Image { id: stillFlag; visible: false; source: "assets/still.png"; asynchronous: false }
+
+    // previews only (sddm-greeter --test-mode / kscreenlocker_greet --testing): read
+    // /tmp/xmb-preview.conf, written by scripts/screenshots.sh, e.g. "hour=14"
+    property real previewHour: -1
+    Component.onCompleted: {
+        var args = Qt.application.arguments
+        if (args.indexOf("--test-mode") < 0 && args.indexOf("--testing") < 0) return
+        var xhr = new XMLHttpRequest()
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState !== XMLHttpRequest.DONE) return
+            var m = ("" + xhr.responseText).match(/hour=([0-9.]+)/)
+            if (m) bgRoot.previewHour = parseFloat(m[1])
+        }
+        xhr.open("GET", "file:///tmp/xmb-preview.conf")
+        xhr.send()
+    }
     readonly property bool still: stillFlag.status === Image.Ready
 
     // ---- the same shader your desktop wallpaper uses ----
@@ -25,7 +41,9 @@ Item {
         property real speed: 1.0
         function secsSinceMidnight() {
             const d = new Date()
-            return (d - new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0)) / 1000
+            const real = (d - new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0)) / 1000
+            // previews only: scripts/screenshots.sh can pretend it's another hour (for its colour)
+            return bgRoot.previewHour >= 0 ? bgRoot.previewHour * 3600 + real % 300 : real
         }
         Timer {
             interval: 16; running: wave.visible && !bgRoot.still; repeat: true; triggeredOnStart: true

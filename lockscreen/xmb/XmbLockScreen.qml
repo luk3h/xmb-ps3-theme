@@ -578,4 +578,22 @@ Item {
     }
     // a soft chime as the lock screen appears
     Timer { interval: 250; running: root.isPrimary; onTriggered: root.sfxPlay("open") }
+
+    // ---- previews only: scripts/screenshots.sh can open a panel straight away ----
+    // reads "show=options|restart|off|wave" from /tmp/xmb-preview.conf
+    function applyPreviewConfig() {
+        var xhr = new XMLHttpRequest()
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState !== XMLHttpRequest.DONE) return
+            var m = ("" + xhr.responseText).match(/show=([a-z]+)/)
+            var show = m ? m[1] : ""
+            if (show === "options") root.openOptions(true)
+            else if (show === "restart") root.askPower("reboot")
+            else if (show === "off") root.askPower("off")
+            else if (show === "wave") ui.visible = false
+        }
+        xhr.open("GET", "file:///tmp/xmb-preview.conf")
+        xhr.send()
+    }
+    Timer { interval: 1500; running: root.previewMode && root.isPrimary; onTriggered: root.applyPreviewConfig() }
 }
