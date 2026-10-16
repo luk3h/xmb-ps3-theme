@@ -49,15 +49,18 @@ The wave changes colour through the day, like the PS3. These shots were taken at
 ## Requirements
 
 - **KDE Plasma 6** (tested on Plasma 6.7, Fedora 44) on Wayland
-- **SDDM** with the Qt 6 greeter (for the login screen)
+- **SDDM** with the Qt 6 greeter (for the login screen). See [Fedora 44+ and Plasma Login Manager](#fedora-44-and-plasma-login-manager) if your distro uses something else.
 - `QtQuick.Effects` (part of Qt 6 declarative; installed with Plasma on most distros)
-- *Optional, recommended:* the **Shader Wallpaper** plugin (right-click desktop → Desktop and Wallpaper → Get New Plugins…), so your **desktop** gets the same animated XMB wave. The installer adds the wave to the plugin for you. Then pick **Shader Wallpaper** → **xmb-wave** in Desktop and Wallpaper settings.
+- *Optional, recommended:* the **Shader Wallpaper** plugin, so your **desktop** gets the same animated XMB wave. **Install it before running `./install.sh`** (or just run `./install.sh` again afterwards): right-click the desktop → Desktop and Wallpaper → Get New Plugins… → search "Shader Wallpaper". The installer then adds the wave to the plugin for you; pick **Shader Wallpaper** → **xmb-wave** in Desktop and Wallpaper settings.
 
 > The animated XMB wave shader is included in `shaders/` (see Credits). The login and lock screens use it automatically. Use `--shader FILE` to use a different one.
 
 ---
 
 ## Install
+
+You need `git` to download it. Fedora: `sudo dnf install git` · Ubuntu/Debian: `sudo apt install git` · Arch: `sudo pacman -S git`.
+(No git? Click **Code → Download ZIP** at the top of this page, extract it, and run `./install.sh` from the extracted folder.)
 
 ```bash
 git clone https://github.com/luk3h/xmb-ps3-theme.git
@@ -70,6 +73,20 @@ Run it as your normal user. It asks for your password when it needs `sudo`. Skip
 ```
 --no-login  --no-lock  --no-leave  --no-splash  --no-sync  --no-displays  --shader FILE  --yes
 ```
+
+and add `--use-sddm` to switch to SDDM if your PC uses a different login manager (see below).
+
+### Fedora 44+ and Plasma Login Manager
+
+New installs of Fedora 44 KDE (and possibly other distros later) use KDE's new **Plasma Login Manager** instead of SDDM. It can't load custom themes, so the installer **skips the login screen** there; the lock screen, Shut Down screen and everything else still install. (PCs upgraded from an older Fedora keep SDDM and get everything.)
+
+To get the XMB login screen as well, switch to SDDM:
+
+```bash
+./install.sh --use-sddm
+```
+
+This installs SDDM if needed and makes it the login manager from your next restart. `./uninstall.sh` switches back to Plasma Login Manager. If the login screen ever doesn't appear after restarting, press **Ctrl+Alt+F3**, log in, and run `sudo systemctl disable sddm && sudo systemctl enable plasmalogin && sudo reboot`.
 
 **Test safely before relying on it:**
 
@@ -84,7 +101,7 @@ scripts/preview.sh lock     # test lock screen; unlock with your password, or it
 ./uninstall.sh
 ```
 
-This puts back your previous login theme, the original lock screen, your Global Theme and splash settings, and the original Shader Wallpaper file. The installer saved them in `~/.config/xmb-ps3/`.
+This puts back your previous login theme (and your previous login manager, if you used `--use-sddm`), the original lock screen, your Global Theme and splash settings, and the original Shader Wallpaper file. The installer saved them in `~/.config/xmb-ps3/`.
 
 ---
 

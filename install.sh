@@ -27,12 +27,16 @@ WP_ID="online.knowmad.shaderwallpaper"
 DO_LOGIN=1 DO_LOCK=1 DO_LEAVE=1 DO_SPLASH=1 DO_SYNC=1 DO_DISPLAYS=1
 SHADER=""
 ASSUME_YES=0
+USE_SDDM=0
 
 usage() {
     cat <<EOF
 Usage: ./install.sh [options]
 
   --no-login        don't install the SDDM login screen
+  --use-sddm        if your PC uses another login manager (e.g. Plasma Login Manager on
+                    Fedora 44+), install SDDM and switch to it for the XMB login screen
+                    (./uninstall.sh switches back)
   --no-lock         don't install the lock screen
   --no-leave        don't install the Shut Down / Restart screen
   --no-splash       don't install the black login splash
@@ -47,6 +51,7 @@ EOF
 while [ $# -gt 0 ]; do
     case "$1" in
         --no-login) DO_LOGIN=0 ;;
+        --use-sddm) USE_SDDM=1 ;;
         --no-lock) DO_LOCK=0 ;;
         --no-leave) DO_LEAVE=0 ;;
         --no-splash) DO_SPLASH=0 ;;
@@ -79,7 +84,25 @@ command -v kreadconfig6  >/dev/null || die "kreadconfig6 not found. This theme n
 PLASMA_VER="$(plasmashell --version 2>/dev/null | awk '{print $2}')"
 case "$PLASMA_VER" in 6.*) ;; *) die "KDE Plasma 6 is required (found: ${PLASMA_VER:-none})." ;; esac
 
-if [ "$DO_LOGIN" = 1 ] && ! command -v sddm-greeter-qt6 >/dev/null; then
+# which login manager starts at boot? (e.g. sddm.service, plasmalogin.service, gdm.service)
+DM_UNIT=""
+if [ -L /etc/systemd/system/display-manager.service ]; then
+    DM_UNIT="$(basename "$(readlink -f /etc/systemd/system/display-manager.service)")"
+fi
+SWITCH_DM=0
+if [ "$DO_LOGIN" = 1 ] && [ -n "$DM_UNIT" ] && [ "$DM_UNIT" != "sddm.service" ]; then
+    if [ "$USE_SDDM" = 1 ]; then
+        SWITCH_DM=1
+    else
+        warn "Your login screen is run by ${DM_UNIT%.service}, not SDDM - skipping the login screen."
+        if [ "$DM_UNIT" = "plasmalogin.service" ]; then
+            warn "  (Plasma Login Manager, the default on new Fedora 44+ installs, can't load custom themes.)"
+        fi
+        warn "  For the XMB login screen too, run again with --use-sddm (./uninstall.sh switches back)."
+        DO_LOGIN=0
+    fi
+fi
+if [ "$DO_LOGIN" = 1 ] && [ "$SWITCH_DM" = 0 ] && ! command -v sddm-greeter-qt6 >/dev/null; then
     warn "SDDM (Qt 6 greeter) not found - skipping the login screen."
     DO_LOGIN=0
 fi
@@ -111,7 +134,7 @@ fi
 
 # ---------------------------------------------------------------- summary
 say "XMB PS3 theme installer (Plasma $PLASMA_VER)"
-echo "    Login screen ............ $([ $DO_LOGIN = 1 ] && echo yes || echo no)"
+echo "    Login screen ............ $([ $DO_LOGIN = 1 ] && echo yes || echo no)$([ $SWITCH_DM = 1 ] && echo " (switches from ${DM_UNIT%.service} to SDDM)")"
 echo "    Lock screen ............. $([ $DO_LOCK = 1 ] && echo yes || echo no)"
 echo "    Shut Down screen ........ $([ $DO_LEAVE = 1 ] && echo yes || echo no)"
 echo "    Black login splash ...... $([ $DO_SPLASH = 1 ] && echo yes || echo no)"
@@ -130,6 +153,16 @@ fi
 # ---------------------------------------------------------------- login screen (SDDM)
 if [ "$DO_LOGIN" = 1 ]; then
     say "Installing the login screen"
+    if [ "$SWITCH_DM" = 1 ] && ! command -v sddm-greeter-qt6 >/dev/null; then
+        say "Installing SDDM"
+        if   command -v dnf     >/dev/null; then sudo dnf install -y sddm sddm-wayland-plasma || sudo dnf install -y sddm
+        elif command -v apt-get >/dev/null; then sudo apt-get install -y sddm
+        elif command -v pacman  >/dev/null; then sudo pacman -S --needed --noconfirm sddm
+        elif command -v zypper  >/dev/null; then sudo zypper install -y sddm
+        else die "Couldn't find a package manager to install SDDM. Install it yourself, then run this again."
+        fi
+        command -v sddm-greeter-qt6 >/dev/null || die "SDDM installed, but its Qt 6 greeter (sddm-greeter-qt6) is missing. Nothing was switched."
+    fi
     sudo rm -rf "$SDDM_THEME_DIR"
     sudo cp -r "$HERE/sddm/xmb-ps3" "$SDDM_THEME_DIR"
     [ -n "$SHADER" ] && sudo cp "$SHADER" "$SDDM_THEME_DIR/xmb-wave.frag.qsb"
@@ -165,6 +198,13 @@ if [ "$DO_LOGIN" = 1 ]; then
             sudo chown -R sddm:sddm "$SDDM_HOME/.config"
             ok "Monitor setup copied to the login screen (no re-sync blink when switching)"
         fi
+    fi
+
+    if [ "$SWITCH_DM" = 1 ]; then
+        save_state display_manager "$DM_UNIT"
+        sudo systemctl disable "$DM_UNIT"
+        sudo systemctl enable sddm.service
+        ok "Switched the login manager from ${DM_UNIT%.service} to SDDM (takes effect when you restart)"
     fi
 fi
 
@@ -244,7 +284,13 @@ fi
 echo
 say "Done!"
 echo "    • Lock screen:  press Meta+L      (safe test: timeout 60 /usr/libexec/kscreenlocker_greet --testing)"
-echo "    • Login screen: log out or restart (preview: sddm-greeter-qt6 --test-mode --theme $SDDM_THEME_DIR)"
+if [ "$DO_LOGIN" = 1 ]; then
+    echo "    • Login screen: log out or restart (preview: sddm-greeter-qt6 --test-mode --theme $SDDM_THEME_DIR)"
+fi
+if [ "$SWITCH_DM" = 1 ]; then
+    echo "    • If the login screen ever doesn't appear after restarting: press Ctrl+Alt+F3, log in, then run"
+    echo "        sudo systemctl disable sddm && sudo systemctl enable $DM_UNIT && sudo reboot"
+fi
 echo "    • To remove everything: ./uninstall.sh"
 if [ "${RESTART_SHELL:-0}" = 1 ]; then
     echo "    • Restart the desktop to load the wallpaper change: plasmashell --replace &> /dev/null & disown"

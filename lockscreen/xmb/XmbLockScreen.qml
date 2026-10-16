@@ -98,7 +98,7 @@ Item {
         if (!isPrimary) return
         if (!authStarted) { startAuth(); pamReady = false }   // checker wasn't running: start it, send when it asks
         if (busy) return
-        if (password.text.length === 0) { password.shake(); return }
+        if (password.text.length === 0) { statusText = "Type your password first."; statusTimer.restart(); password.shake(false); return }
         busy = true
         statusText = "Checking password..."
         pending = password.text
@@ -185,7 +185,7 @@ Item {
             pamReady = false
             password.clear()
             statusText = "The password is incorrect."
-            password.shake()
+            password.shake(true)
             statusTimer.restart()
             restartTimer.restart()
         }

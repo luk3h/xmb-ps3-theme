@@ -162,10 +162,10 @@ Item {
         Keys.onPressed: (event) => root.handleKey(event)
     }
 
-    // dim the desktop; clicking outside the band cancels
+    // dim the desktop (dark enough to look clean even when KDE's blur is off); clicking outside the band cancels
     Rectangle {
         anchors.fill: parent
-        color: "#60000000"
+        color: "#c8000000"
         opacity: 0
         Component.onCompleted: opacity = 1
         Behavior on opacity { NumberAnimation { duration: 200 } }

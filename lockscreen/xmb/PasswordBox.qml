@@ -17,10 +17,12 @@ Item {
     function clear() { input.text = "" }
     // ignore repeat requests while one shake is still fresh
     property real lastShake: 0
-    function shake() {
+    // shake(true) = wrong password: also flashes the border red
+    function shake(isError) {
         var now = Date.now()
-        if (now - lastShake < 1500) return
+        if (now - lastShake < 900) return
         lastShake = now
+        frame.alertOn = isError === true
         shakeAnim.restart()
     }
     function focusInput() { input.forceActiveFocus() }
@@ -43,17 +45,29 @@ Item {
         height: parent.height
         radius: 6 * box.s
         color: "#30ffffff"
-        border.color: input.activeFocus ? "#c8ffffff" : "#60ffffff"
+        property bool alertOn: false
+        property real alert: 0
+        border.color: alert > 0 ? Qt.rgba(1, 0.42, 0.42, 0.5 + 0.5 * alert)
+                                : (input.activeFocus ? "#c8ffffff" : "#60ffffff")
         border.width: Math.max(1, box.s)
         opacity: box.busy ? 0.5 : 1
         property real shakeX: 0
         transform: Translate { x: frame.shakeX }
-        SequentialAnimation {
+        ParallelAnimation {
             id: shakeAnim
-            // one quick left-right shake
-            NumberAnimation { target: frame; property: "shakeX"; to: 12 * box.s; duration: 60; easing.type: Easing.OutQuad }
-            NumberAnimation { target: frame; property: "shakeX"; to: -12 * box.s; duration: 110; easing.type: Easing.InOutQuad }
-            NumberAnimation { target: frame; property: "shakeX"; to: 0; duration: 80; easing.type: Easing.InQuad }
+            // one clear shake: out, back, and a smaller bounce to settle
+            SequentialAnimation {
+                NumberAnimation { target: frame; property: "shakeX"; to: 20 * box.s; duration: 60; easing.type: Easing.OutQuad }
+                NumberAnimation { target: frame; property: "shakeX"; to: -20 * box.s; duration: 110; easing.type: Easing.InOutQuad }
+                NumberAnimation { target: frame; property: "shakeX"; to: 10 * box.s; duration: 90; easing.type: Easing.InOutQuad }
+                NumberAnimation { target: frame; property: "shakeX"; to: 0; duration: 80; easing.type: Easing.InQuad }
+            }
+            // red border for a wrong password, fading back to white
+            SequentialAnimation {
+                ScriptAction { script: frame.alert = frame.alertOn ? 1 : 0 }
+                PauseAnimation { duration: 700 }
+                NumberAnimation { target: frame; property: "alert"; to: 0; duration: 500 }
+            }
         }
         MouseArea { anchors.fill: parent; cursorShape: Qt.IBeamCursor; onClicked: input.forceActiveFocus() }
         TextInput {

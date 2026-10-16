@@ -68,7 +68,7 @@ Rectangle {
         if (busy) return
         var u = userRep.itemAt(userIdx)
         if (!u) return
-        if (password.text.length === 0) { password.shake(); return }
+        if (password.text.length === 0) { statusText = "Type your password first."; statusTimer.restart(); password.shake(false); return }
         busy = true
         statusText = "Checking password..."
         loginWatchdog.restart()
@@ -128,7 +128,7 @@ Rectangle {
             password.clear()
             statusText = "The password is incorrect."
             statusTimer.restart()
-            password.shake()
+            password.shake(true)
             focusRight()
         }
         function onLoginSucceeded() {

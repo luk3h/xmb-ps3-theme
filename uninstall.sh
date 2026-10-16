@@ -38,6 +38,14 @@ if [ -d /usr/share/sddm/themes/xmb-ps3 ] || [ -f /etc/sddm.conf.d/zz-xmb-ps3.con
     ok "Login screen set back to: $PREV"
 fi
 
+# login manager: switch back if install.sh --use-sddm changed it
+DM="$(get display_manager)"
+if [ -n "$DM" ]; then
+    sudo systemctl disable sddm.service
+    sudo systemctl enable "$DM"
+    ok "Login manager switched back to ${DM%.service} (takes effect when you restart; SDDM itself was left installed)"
+fi
+
 # Shut Down screen + splash
 if [ -d "$LNF_DIR" ]; then
     LNF="$(get lookandfeel)"
