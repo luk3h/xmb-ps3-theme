@@ -76,6 +76,8 @@ Run it as your normal user. It asks for your password when it needs `sudo`. Skip
 
 and add `--use-sddm` to switch to SDDM if your PC uses a different login manager (see below).
 
+**Virtual machines:** the installer detects them and keeps the login and lock screen wave **still**, because redrawing the full-screen wave without a graphics card can freeze the VM window (GNOME Boxes even crashes). Use `--moving-wave` to animate it anyway, or `--still-wave` on a real PC that struggles.
+
 ### Fedora 44+ and Plasma Login Manager
 
 New installs of Fedora 44 KDE (and possibly other distros later) use KDE's new **Plasma Login Manager** instead of SDDM. It can't load custom themes, so the installer **skips the login screen** there; the lock screen, Shut Down screen and everything else still install. (PCs upgraded from an older Fedora keep SDDM and get everything.)

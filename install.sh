@@ -28,6 +28,7 @@ DO_LOGIN=1 DO_LOCK=1 DO_LEAVE=1 DO_SPLASH=1 DO_SYNC=1 DO_DISPLAYS=1
 SHADER=""
 ASSUME_YES=0
 USE_SDDM=0
+STILL_WAVE=auto
 
 usage() {
     cat <<EOF
@@ -43,6 +44,9 @@ Usage: ./install.sh [options]
   --no-sync         don't patch Shader Wallpaper for the shared wave clock
   --no-displays     don't copy your monitor setup to the login screen
   --shader FILE     use this compiled wave shader (.frag.qsb) instead of searching for one
+  --still-wave      keep the login/lock wave still (automatic in virtual machines; saves CPU
+                    on PCs without a proper graphics card)
+  --moving-wave     always animate the wave, even in a virtual machine
   -y, --yes         don't ask for confirmation
   -h, --help        show this help
 EOF
@@ -52,6 +56,8 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --no-login) DO_LOGIN=0 ;;
         --use-sddm) USE_SDDM=1 ;;
+        --still-wave) STILL_WAVE=1 ;;
+        --moving-wave) STILL_WAVE=0 ;;
         --no-lock) DO_LOCK=0 ;;
         --no-leave) DO_LEAVE=0 ;;
         --no-splash) DO_SPLASH=0 ;;
@@ -132,6 +138,18 @@ if [ -z "$SHADER" ]; then
 fi
 [ -n "$SHADER" ] && [ ! -f "$SHADER" ] && die "Shader file not found: $SHADER"
 
+# ---------------------------------------------------------------- still or moving wave
+VIRT=""
+if [ "$STILL_WAVE" = auto ]; then
+    STILL_WAVE=0
+    if command -v systemd-detect-virt >/dev/null && systemd-detect-virt -q; then
+        VIRT="$(systemd-detect-virt)"
+        STILL_WAVE=1
+    fi
+fi
+# a tiny marker image; the login and lock screens look for it
+mark_still() { [ "$STILL_WAVE" = 1 ] && sudo cp "$HERE/lockscreen/xmb/assets/sparkle.png" "$1/assets/still.png"; return 0; }
+
 # ---------------------------------------------------------------- summary
 say "XMB PS3 theme installer (Plasma $PLASMA_VER)"
 echo "    Login screen ............ $([ $DO_LOGIN = 1 ] && echo yes || echo no)$([ $SWITCH_DM = 1 ] && echo " (switches from ${DM_UNIT%.service} to SDDM)")"
@@ -140,6 +158,7 @@ echo "    Shut Down screen ........ $([ $DO_LEAVE = 1 ] && echo yes || echo no)"
 echo "    Black login splash ...... $([ $DO_SPLASH = 1 ] && echo yes || echo no)"
 echo "    Wave clock sync ......... $([ $DO_SYNC = 1 ] && echo yes || echo no)"
 echo "    Copy monitor setup ...... $([ $DO_DISPLAYS = 1 ] && echo yes || echo no)"
+echo "    Login/lock wave ......... $([ $STILL_WAVE = 1 ] && echo "still$([ -n "$VIRT" ] && echo " (virtual machine detected: $VIRT; use --moving-wave to animate)")" || echo moving)"
 if [ -n "$SHADER" ]; then
     echo "    Wave shader ............. $SHADER"
 else
@@ -166,6 +185,7 @@ if [ "$DO_LOGIN" = 1 ]; then
     sudo rm -rf "$SDDM_THEME_DIR"
     sudo cp -r "$HERE/sddm/xmb-ps3" "$SDDM_THEME_DIR"
     [ -n "$SHADER" ] && sudo cp "$SHADER" "$SDDM_THEME_DIR/xmb-wave.frag.qsb"
+    mark_still "$SDDM_THEME_DIR"
     ok "Theme copied to $SDDM_THEME_DIR"
 
     # remember the current theme, then switch
@@ -216,6 +236,7 @@ if [ "$DO_LOCK" = 1 ]; then
     sudo cp -r "$HERE/lockscreen/xmb" /usr/local/share/xmb-lockscreen/xmb
     sudo cp "$HERE/lockscreen/LockScreen-shim.qml" /usr/local/share/xmb-lockscreen/
     [ -n "$SHADER" ] && sudo cp "$SHADER" /usr/local/share/xmb-lockscreen/xmb/xmb-wave.frag.qsb
+    mark_still /usr/local/share/xmb-lockscreen/xmb
     sudo install -m 755 "$HERE/lockscreen/xmb-lockscreen-apply" "$HERE/lockscreen/xmb-lockscreen-restore" /usr/local/bin/
     sudo install -m 644 "$HERE/lockscreen/xmb-lockscreen.path" "$HERE/lockscreen/xmb-lockscreen.service" /etc/systemd/system/
     sudo /usr/local/bin/xmb-lockscreen-apply

@@ -6,6 +6,11 @@ Item {
     id: bgRoot
     property int sparkleCount: 40
 
+    // Still wave: the installer adds assets/still.png in virtual machines (or with --still-wave).
+    // Without a graphics card, redrawing the whole screen 60 times a second is very heavy.
+    Image { id: stillFlag; visible: false; source: "assets/still.png"; asynchronous: false }
+    readonly property bool still: stillFlag.status === Image.Ready
+
     // ---- the same shader your desktop wallpaper uses ----
     ShaderEffect {
         id: wave
@@ -23,12 +28,18 @@ Item {
             return (d - new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0)) / 1000
         }
         Timer {
-            interval: 16; running: wave.visible; repeat: true; triggeredOnStart: true
+            interval: 16; running: wave.visible && !bgRoot.still; repeat: true; triggeredOnStart: true
             onTriggered: {
                 const secs = wave.secsSinceMidnight()
                 wave.iTime = secs * wave.speed
                 wave.iDate = Qt.vector4d(0, 0, 0, secs)
             }
+        }
+        // still wave: draw one frame, at the right time of day
+        Component.onCompleted: {
+            const secs = wave.secsSinceMidnight()
+            wave.iTime = secs * wave.speed
+            wave.iDate = Qt.vector4d(0, 0, 0, secs)
         }
     }
 
@@ -40,12 +51,12 @@ Item {
         property real t1: 0
         property real t2: 0
         SequentialAnimation on t1 {
-            running: fallback.visible; loops: Animation.Infinite
+            running: fallback.visible && !bgRoot.still; loops: Animation.Infinite
             NumberAnimation { from: 0; to: 1; duration: 17000; easing.type: Easing.InOutSine }
             NumberAnimation { from: 1; to: 0; duration: 17000; easing.type: Easing.InOutSine }
         }
         SequentialAnimation on t2 {
-            running: fallback.visible; loops: Animation.Infinite
+            running: fallback.visible && !bgRoot.still; loops: Animation.Infinite
             NumberAnimation { from: 0; to: 1; duration: 11000; easing.type: Easing.InOutSine }
             NumberAnimation { from: 1; to: 0; duration: 11000; easing.type: Easing.InOutSine }
         }
@@ -68,7 +79,7 @@ Item {
 
     // ---- sparkles (only with the fallback; your shader draws its own) ----
     Repeater {
-        model: fallback.visible ? bgRoot.sparkleCount : 0
+        model: (fallback.visible && !bgRoot.still) ? bgRoot.sparkleCount : 0
         Image {
             source: "assets/sparkle.png"
             readonly property real sc: bgRoot.height / 1080
