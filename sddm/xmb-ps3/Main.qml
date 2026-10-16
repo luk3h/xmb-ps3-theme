@@ -79,9 +79,28 @@ Rectangle {
     }
     property string pendingUser: ""
     property string pendingPass: ""
+    // preview (sddm-greeter-qt6 --test-mode / scripts/preview.sh login): SDDM ignores sign-in and
+    // power buttons there, so we fade back in and say so instead of sitting on a black screen
+    readonly property bool previewMode: Qt.application.arguments.indexOf("--test-mode") >= 0
+    readonly property string previewNote: "Preview only - this can't sign in or turn anything off. Press Ctrl+Q to exit."
     Timer {
         id: sendLogin; interval: 220
-        onTriggered: { sddm.login(root.pendingUser, root.pendingPass, root.sessionIdx); root.pendingPass = "" }
+        onTriggered: {
+            if (root.previewMode) { root.pendingPass = ""; previewBack.start(); return }
+            sddm.login(root.pendingUser, root.pendingPass, root.sessionIdx); root.pendingPass = ""
+        }
+    }
+    Timer {
+        id: previewBack; interval: 1200
+        onTriggered: {
+            loginWatchdog.stop()
+            root.busy = false
+            if (root.showUi) root.broadcast("clear")
+            password.clear()
+            root.statusText = root.previewNote
+            statusTimer.interval = 8000; statusTimer.restart()
+            root.focusRight()
+        }
     }
     function activateOption() {
         if (optIdx < sessCount) { sessionIdx = optIdx; openOptions(false); return }
@@ -135,7 +154,7 @@ Rectangle {
             statusText = "Signing in..."
         }
     }
-    Timer { id: statusTimer; interval: 3500; onTriggered: if (!busy) statusText = "" }
+    Timer { id: statusTimer; interval: 3500; onTriggered: { interval = 3500; if (!busy) statusText = "" } }
     // safety net: if signing in never answers (e.g. in test mode), let you try again
     Timer {
         id: loginWatchdog
@@ -331,6 +350,7 @@ Rectangle {
         onAccepted: {
             busyThenFade("", function() {
                 var a = confirm.pendingAct
+                if (root.previewMode) { previewPower.start(); return }
                 root.doPower(a)
                 if (a === "suspend" || a === "hibernate") wakeTimer.start()   // bring the screen back after waking
                 else busyFailsafe.start()
@@ -340,6 +360,15 @@ Rectangle {
     }
     // if the system doesn't go down (e.g. blocked), give the screen back
     // Timers don't count while the PC is asleep, so this fires shortly after it wakes up
+    Timer {
+        id: previewPower; interval: 1000
+        onTriggered: {
+            confirm.unfade()
+            root.statusText = root.previewNote
+            statusTimer.interval = 8000; statusTimer.restart()
+            root.afterDialog()
+        }
+    }
     Timer { id: wakeTimer; interval: 2500; onTriggered: { confirm.unfade(); root.afterDialog() } }
     Timer {
         id: busyFailsafe; interval: 20000
@@ -439,5 +468,18 @@ Rectangle {
             if (!root.showUi) return
             root.broadcast(confirm.busy ? "power" : "clear")
         }
+    }
+
+    // ---- preview only: an always-visible way out, even while the screen is faded to black ----
+    function exitPreview() { Qt.quit() }
+    Shortcut { sequence: "Ctrl+Q"; enabled: root.previewMode; onActivated: root.exitPreview() }
+    HintButton {
+        visible: root.previewMode
+        z: 5000
+        s: root.s; fontName: root.fontName
+        keyText: "Ctrl+Q"; label: "Exit preview"
+        anchors.top: parent.top; anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: 24 * root.s
+        onClicked: root.exitPreview()
     }
 }

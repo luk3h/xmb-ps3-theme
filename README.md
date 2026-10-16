@@ -93,7 +93,7 @@ This installs SDDM if needed and makes it the login manager from your next resta
 **Test safely before relying on it:**
 
 ```bash
-scripts/preview.sh login    # login screen in a window; can't actually log you in
+scripts/preview.sh login    # login screen preview; can't sign in or turn off. Exit with Ctrl+Q / the Exit preview button
 scripts/preview.sh lock     # test lock screen; unlock with your password, or it closes after 60 s
 ```
 
