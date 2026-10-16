@@ -51,7 +51,7 @@ The wave changes colour through the day, like the PS3. These shots were taken at
 - **KDE Plasma 6** (tested on Plasma 6.7, Fedora 44) on Wayland
 - **SDDM** with the Qt 6 greeter (for the login screen). See [Fedora 44+ and Plasma Login Manager](#fedora-44-and-plasma-login-manager) if your distro uses something else.
 - `QtQuick.Effects` (part of Qt 6 declarative; installed with Plasma on most distros)
-- *Optional, recommended:* the **Shader Wallpaper** plugin, so your **desktop** gets the same animated XMB wave. **Install it before running `./install.sh`** (or just run `./install.sh` again afterwards): right-click the desktop → Desktop and Wallpaper → Get New Plugins… → search "Shader Wallpaper". The installer then adds the wave to the plugin for you; pick **Shader Wallpaper** → **xmb-wave** in Desktop and Wallpaper settings.
+- *Optional, recommended:* the **Shader Wallpaper** plugin, so your **desktop** gets the same animated XMB wave. See [The wave on your desktop](#the-wave-on-your-desktop-shader-wallpaper) below. Install it **before** running `./install.sh`, or just run `./install.sh` again afterwards.
 
 > The animated XMB wave shader is included in `shaders/` (see Credits). The login and lock screens use it automatically. Use `--shader FILE` to use a different one.
 
@@ -119,6 +119,27 @@ To remove only your own parts and leave the shared screens for everyone else:
 ```
 
 A plain `./uninstall.sh` (needs an admin password) removes the shared login and lock screens for **everyone**, plus your own parts.
+
+### The wave on your desktop (Shader Wallpaper)
+
+The login and lock screens bring their own copy of the wave. For the **desktop**, you need the free **Shader Wallpaper** plugin by y4my4my4m:
+
+1. Right-click the desktop → **Desktop and Wallpaper** → **Get New Plugins…**
+2. Search **Shader Wallpaper** ("Shader Wallpaper for Plasma6 by y4my4my4m") and click **Install**.
+3. It asks you to *Pick Your Installation Option*. Choose the newest, **`kde-shader-wallpaper-3.0.3-plasma6.zip`**. (The ⚠ icons are normal.)
+4. Run `./install.sh` (again, if you already ran it). It should say **XMB wave added to Shader Wallpaper** and **Syncing the Shader Wallpaper clock... Patched**.
+5. In Desktop and Wallpaper, set **Wallpaper type** to **Shader Wallpaper** and pick **xmb-wave** from its list.
+
+What the installer changes in the plugin (`~/.local/share/plasma/wallpapers/online.knowmad.shaderwallpaper/`):
+
+| File | Change | Undone by `./uninstall.sh`? |
+|---|---|---|
+| `contents/ui/Shaders6/xmb-wave.frag.qsb` | The XMB wave added to the plugin's shader list | No, on purpose: it may be your wallpaper. Delete it yourself if you like |
+| `contents/ui/main.qml` | One line, so the desktop wave uses the same clock as the login/lock wave (no jump when you unlock). Original saved as `main.qml.xmb-orig` | Yes |
+
+**Shader Wallpaper version 4** (built from source on [GitHub](https://github.com/y4my4my4m/kde-shader-wallpaper), not on the KDE Store) works differently, so the installer can't add the wave to it. Use its **Import** button instead and choose `shaders/xmb-wave.frag` from this folder. The clock sync isn't available there.
+
+**In a virtual machine**, keep a normal image wallpaper. The installer makes the login and lock wave still in VMs, but the desktop wallpaper always animates, and without a graphics card that makes the whole VM sluggish.
 
 ## Uninstall
 
