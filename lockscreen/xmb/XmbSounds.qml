@@ -1,6 +1,9 @@
 // PS3-style menu sounds. Loaded through a Loader, so if Qt Multimedia isn't installed this
 // file simply fails to load and the screen stays silent - nothing else is affected.
 // The sounds in sounds/ are original, generated for this theme (see sounds/README.md in the repo).
+//
+// MediaPlayer, not SoundEffect: SoundEffect marks its sounds as notification-type "event"
+// sounds, which KDE's Do Not Disturb mutes.
 import QtQuick
 import QtMultimedia
 
@@ -16,12 +19,14 @@ Item {
         lastAt = now
         var e = name === "move" ? move : name === "select" ? select : name === "back" ? back
               : name === "error" ? error : name === "open" ? open : null
-        if (e) { e.stop(); e.play() }
+        if (!e) return
+        e.position = 0
+        e.play()
     }
 
-    SoundEffect { id: move;   source: "sounds/move.wav";   volume: sfx.volume }
-    SoundEffect { id: select; source: "sounds/select.wav"; volume: sfx.volume }
-    SoundEffect { id: back;   source: "sounds/back.wav";   volume: sfx.volume }
-    SoundEffect { id: error;  source: "sounds/error.wav";  volume: sfx.volume }
-    SoundEffect { id: open;   source: "sounds/open.wav";   volume: sfx.volume * 0.8 }
+    MediaPlayer { id: move;   source: "sounds/move.wav";   audioOutput: AudioOutput { volume: sfx.volume } }
+    MediaPlayer { id: select; source: "sounds/select.wav"; audioOutput: AudioOutput { volume: sfx.volume } }
+    MediaPlayer { id: back;   source: "sounds/back.wav";   audioOutput: AudioOutput { volume: sfx.volume } }
+    MediaPlayer { id: error;  source: "sounds/error.wav";  audioOutput: AudioOutput { volume: sfx.volume } }
+    MediaPlayer { id: open;   source: "sounds/open.wav";   audioOutput: AudioOutput { volume: sfx.volume * 0.8 } }
 }
