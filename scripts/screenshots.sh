@@ -36,7 +36,7 @@ wave:login:10:wave
 
 shoot() {   # shoot NAME SCREEN HOUR SHOW
     local name=$1 screen=$2 hour=$3 show=$4 pid
-    printf 'hour=%s\nshow=%s\n' "$hour" "$show" > "$CONF"
+    printf 'hour=%s\nshow=%s\nbanner=off\n' "$hour" "$show" > "$CONF"
     if [ "$screen" = login ]; then
         sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/xmb-ps3 >/dev/null 2>&1 &
     else

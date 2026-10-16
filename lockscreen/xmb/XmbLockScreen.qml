@@ -544,6 +544,18 @@ Item {
     // fades out after a few seconds so screenshots are clean; move the mouse to the top to bring it back
     property bool previewBannerShown: true
     Timer { id: previewBannerTimer; interval: 5000; running: root.previewMode && root.isPrimary; onTriggered: root.previewBannerShown = false }
+    // scripts/demo.sh and screenshots.sh can switch it off from the start ("banner=off")
+    Timer {
+        interval: 1; running: root.previewMode
+        onTriggered: {
+            var xhr = new XMLHttpRequest()
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE && /banner=off/.test("" + xhr.responseText)) root.previewBannerShown = false
+            }
+            xhr.open("GET", "file:///tmp/xmb-preview.conf")
+            xhr.send()
+        }
+    }
     MouseArea {
         enabled: root.previewMode && root.isPrimary
         z: 4999

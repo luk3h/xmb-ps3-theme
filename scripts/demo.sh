@@ -80,7 +80,7 @@ stop_recording() {   # Ctrl+C equivalent, sent to the recorder itself (not just 
 }
 cleanup() { stop_recording; sudo kill "$YD" 2>/dev/null; sudo rm -f "$SOCK"; rm -f "$CONF"; }
 trap cleanup EXIT
-[ -n "$HOUR" ] && printf 'hour=%s\n' "$HOUR" > "$CONF"
+{ echo "banner=off"; [ -n "$HOUR" ] && echo "hour=$HOUR"; } > "$CONF"      # no "Preview" banner in the video
 export QML_XHR_ALLOW_FILE_READ=1     # lets the lock preview read the colour
 for _ in $(seq 20); do [ -S "$SOCK" ] && break; sleep 0.2; done
 [ -S "$SOCK" ] || { echo "The virtual keyboard didn't start."; exit 1; }
@@ -119,7 +119,7 @@ if [ "$LOGIN" = 1 ]; then
     sleep "$LOOK"
     sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/xmb-ps3 >/dev/null 2>&1 &
     GREETER=$!
-    sleep 5.5                                   # fade in; the "Exit preview" banner fades after 5 s
+    sleep 3.5                                   # let it fade in (the banner is switched off)
 
     USERS=$(getent passwd | awk -F: '$3 >= 1000 && $3 < 60000 && $7 !~ /(nologin|false)$/' | wc -l)
     for _ in $(seq $((USERS - 1))); do tap 108; done; sleep "$LOOK"   # down the user column...
@@ -148,7 +148,7 @@ if [ "$RECORD" = 1 ]; then
     /usr/libexec/kscreenlocker_greet --testing >/dev/null 2>&1 &
     LOCK=$!
     locked() { kill -0 "$LOCK" 2>/dev/null; }      # the preview closes when you unlock
-    sleep 5.5                                       # its "Preview" banner fades after 5 s
+    sleep 3.5                                       # let it fade in (the banner is switched off)
 else
     loginctl lock-session
     sleep "$OPEN"
