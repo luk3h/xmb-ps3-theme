@@ -438,6 +438,7 @@ Rectangle {
             var parts = ("" + Qt.application.displayName).split(":")
             if (parts[0] !== "xmb") return
             var cmd = parts[1]
+            if (cmd === "quit") { root.closePreviewWindow(); return }
             sharedFade.stop()
             if (cmd === "black")      { sharedFade.pause = 0;   sharedFade.to = 1; sharedFade.dur = 200 }
             else if (cmd === "power") { sharedFade.pause = 900; sharedFade.to = 1; sharedFade.dur = 450 }
@@ -471,7 +472,10 @@ Rectangle {
     }
 
     // ---- preview only: an always-visible way out, even while the screen is faded to black ----
-    function exitPreview() { Qt.quit() }
+    // SDDM's preview ignores Qt.quit(), but closing the windows ends it (like Alt+F4).
+    // Every monitor has its own window, so tell them all to close.
+    function exitPreview() { if (root.previewMode) root.broadcast("quit") }
+    function closePreviewWindow() { if (root.previewMode && root.Window.window) root.Window.window.close() }
     Shortcut { sequence: "Ctrl+Q"; enabled: root.previewMode; onActivated: root.exitPreview() }
     HintButton {
         visible: root.previewMode
