@@ -111,7 +111,7 @@ Add any of these after `./install.sh`, e.g. `./install.sh --no-splash --yes`:
 | `--no-leave` | Don't install the Shut Down / Restart screen | Just you |
 | `--no-splash` | Keep your current loading splash | Just you |
 | `--no-sync` | Don't change Shader Wallpaper (the desktop wave won't line up with the login/lock wave) | Just you |
-| `--no-displays` | Don't copy your monitor setup to the login screen | Everyone |
+| `--no-displays` | Don't copy your monitor setup and audio output/volume to the login screen | Everyone |
 | `--use-sddm` | Switch to SDDM if your PC uses another login manager ([see below](#fedora-44-and-plasma-login-manager)) | Everyone |
 | `--no-sounds` | No menu sounds on the login, lock and Shut Down screens | Everyone (login/lock), just you (Shut Down) |
 | `--sounds DIR` | Use sound files from another folder instead of `custom-sounds/` ([see below](#using-your-own-sounds)) | Everyone (login/lock), just you (Shut Down) |

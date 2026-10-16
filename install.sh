@@ -270,7 +270,7 @@ elif [ -f "$WP_HOME_MAIN" ]; then
 else
     echo "    Wave clock sync ......... skipped (Shader Wallpaper isn't installed - see the README, then run this again)"
 fi
-echo "    Copy monitor setup ...... $([ $DO_DISPLAYS = 1 ] && [ $DO_LOGIN = 1 ] && echo yes || echo no)"
+echo "    Copy monitor/audio ...... $([ $DO_DISPLAYS = 1 ] && [ $DO_LOGIN = 1 ] && echo yes || echo no)"
 echo "    Menu sounds ............. $([ $SOUNDS = 0 ] && echo no || { [ -n "$CUSTOM_SOUNDS" ] && echo "yours:$FOUND (from $SOUND_DIR)" || echo yes; })"
 echo "    Login/lock wave ......... $([ $STILL_WAVE = 1 ] && echo "still$([ -n "$VIRT" ] && echo " (virtual machine detected: $VIRT; use --moving-wave to animate)")" || echo moving)"
 if [ -n "$SHADER" ]; then
@@ -336,6 +336,25 @@ if [ "$DO_LOGIN" = 1 ]; then
             sudo cp "$HOME/.config/kwinoutputconfig.json" "$SDDM_HOME/.config/"
             sudo chown -R sddm:sddm "$SDDM_HOME/.config"
             ok "Monitor setup copied to the login screen (no re-sync blink when switching)"
+        fi
+    fi
+
+    # your audio choices (which output, and its volume) for the login screen, so its menu sounds
+    # come out of the same speakers at the same level as on the lock screen. The login screen runs
+    # as the separate 'sddm' user, which otherwise has its own default device and volume.
+    WP_STATE="${XDG_STATE_HOME:-$HOME/.local/state}/wireplumber"
+    SDDM_HOME="$(getent passwd sddm | cut -d: -f6 || true)"
+    if [ "$DO_DISPLAYS" = 1 ] && [ "$SOUNDS" = 1 ] && [ -n "$SDDM_HOME" ] && [ -d "$WP_STATE" ]; then
+        COPIED=""
+        for f in default-nodes default-routes; do
+            [ -f "$WP_STATE/$f" ] || continue
+            sudo mkdir -p "$SDDM_HOME/.local/state/wireplumber"
+            sudo install -m 644 "$WP_STATE/$f" "$SDDM_HOME/.local/state/wireplumber/$f"
+            COPIED=1
+        done
+        if [ -n "$COPIED" ]; then
+            sudo chown -R sddm:sddm "$SDDM_HOME/.local"
+            ok "Audio output and volume copied to the login screen (same sound level as the lock screen)"
         fi
     fi
 
