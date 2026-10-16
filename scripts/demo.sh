@@ -6,6 +6,8 @@
 #   scripts/demo.sh                  # records it with GPU Screen Recorder (main monitor, with sound)
 #   scripts/demo.sh --hour 16        # ...with the wave in that hour's colour (9 purple ... 16 blue)
 #   scripts/demo.sh --no-record      # don't record (e.g. to film it some other way)
+#   scripts/demo.sh --login          # the login screen instead (its preview - what you see after
+#                                    #   booting or from Other User): users, Options, Restart? No
 #
 # The real lock screen can't be screen-recorded cleanly (the recorder grabs the wrong layer),
 # so while recording, the lock screen part uses the lock screen preview, which looks the same.
@@ -27,10 +29,11 @@ WRONG="wrongpass"
 SCREEN="DP-1"                                         # monitor to record (see --list-capture-options)
 OUTFILE="$HOME/Videos/xmb-demo-$(date +%H%M%S).mp4"
 
-RECORD=1 HOUR=""
+RECORD=1 HOUR="" LOGIN=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --no-record) RECORD=0 ;;
+        --login) LOGIN=1 ;;
         --hour) HOUR="${2:-}"; shift ;;
         --screen) SCREEN="${2:-}"; shift ;;
         -o) OUTFILE="${2:-}"; shift ;;
@@ -105,6 +108,39 @@ fi
 echo "the keyboard or mouse until it asks for your password."
 for i in 5 4 3 2 1; do printf '  %s\r' "$i"; sleep 1; done; echo
 [ "$RECORD" = 1 ] && start_recording
+
+# ---------------------------------------------------------------- the login screen (--login)
+if [ "$LOGIN" = 1 ]; then
+    command -v sddm-greeter-qt6 >/dev/null || { echo "SDDM's greeter isn't installed."; exit 1; }
+    # Options lists the sessions first (starting on the current one), then Sleep, Restart, Turn Off
+    SESSIONS=$(ls /usr/share/wayland-sessions/*.desktop /usr/share/xsessions/*.desktop 2>/dev/null | wc -l)
+    TO_RESTART=$(( SESSIONS + 1 ))
+
+    sleep "$LOOK"
+    sddm-greeter-qt6 --test-mode --theme /usr/share/sddm/themes/xmb-ps3 >/dev/null 2>&1 &
+    GREETER=$!
+    sleep 5.5                                   # fade in; the "Exit preview" banner fades after 5 s
+
+    USERS=$(getent passwd | awk -F: '$3 >= 1000 && $3 < 60000 && $7 !~ /(nologin|false)$/' | wc -l)
+    for _ in $(seq $((USERS - 1))); do tap 108; done; sleep "$LOOK"   # down the user column...
+    for _ in $(seq $((USERS - 1))); do tap 103; done; sleep 1         # ...and back up
+
+    tap 15; sleep "$LOOK"                       # Tab: Options (session + power)
+    for _ in $(seq "$TO_RESTART"); do tap 108; done
+    sleep 1
+    tap 28; sleep "$LOOK"                       # Enter: "Restart the system?"
+    tap 106; sleep 1                            # Right: No
+    tap 28; sleep "$LOOK"                       # Enter: back
+
+    tap 28; sleep "$LOOK"                       # empty Enter: "Type your password first."
+    sleep 1
+    ydotool key 29:1 16:1 16:0 29:0 >/dev/null  # Ctrl+Q: close the preview
+    wait "$GREETER" 2>/dev/null
+    sleep 1
+    stop_recording
+    [ "$RECORD" = 1 ] && echo "Done - saved: $OUTFILE" || echo "Done - stop filming."
+    exit 0
+fi
 
 # 1. desktop, then lock (the preview while recording, the real one otherwise)
 sleep "$LOOK"
