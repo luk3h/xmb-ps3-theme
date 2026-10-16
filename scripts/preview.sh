@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Safe previews - nothing is changed, and the lock screen test closes itself.
-# lets the previews read /tmp/xmb-preview.conf (used by scripts/screenshots.sh)
+# lets the login preview read /proc/uptime, like the real login screen does
 export QML_XHR_ALLOW_FILE_READ=1
 case "${1:-}" in
     login) echo "Exit the preview with Ctrl+Q or its Exit preview button (or press Ctrl+C here). Signing in and power buttons do nothing in it."

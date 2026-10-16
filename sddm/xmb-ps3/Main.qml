@@ -496,18 +496,6 @@ Rectangle {
     // fades out after a few seconds so screenshots are clean; move the mouse to the top to bring it back
     property bool previewBannerShown: true
     Timer { id: previewBannerTimer; interval: 5000; running: root.previewMode; onTriggered: root.previewBannerShown = false }
-    // scripts/demo.sh and screenshots.sh can switch it off from the start ("banner=off")
-    Timer {
-        interval: 1; running: root.previewMode
-        onTriggered: {
-            var xhr = new XMLHttpRequest()
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === XMLHttpRequest.DONE && /banner=off/.test("" + xhr.responseText)) root.previewBannerShown = false
-            }
-            xhr.open("GET", "file:///tmp/xmb-preview.conf")
-            xhr.send()
-        }
-    }
     MouseArea {
         enabled: root.previewMode
         z: 4999
@@ -541,22 +529,4 @@ Rectangle {
         function onAccepted() { root.sfxPlay("select") }
         function onRejected() { root.sfxPlay("back") }
     }
-
-    // ---- previews only: scripts/screenshots.sh can open a panel straight away ----
-    // reads "show=options|restart|off|wave" from /tmp/xmb-preview.conf
-    function applyPreviewConfig() {
-        var xhr = new XMLHttpRequest()
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState !== XMLHttpRequest.DONE) return
-            var m = ("" + xhr.responseText).match(/show=([a-z]+)/)
-            var show = m ? m[1] : ""
-            if (show === "options") root.openOptions(true)
-            else if (show === "restart") root.askPower("reboot")
-            else if (show === "off") root.askPower("off")
-            else if (show === "wave") ui.visible = false
-        }
-        xhr.open("GET", "file:///tmp/xmb-preview.conf")
-        xhr.send()
-    }
-    Timer { interval: 1500; running: root.previewMode && root.showUi; onTriggered: root.applyPreviewConfig() }
 }
