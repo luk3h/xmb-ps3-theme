@@ -99,7 +99,15 @@ The **login screen** and **lock screen** are shared: install once and every user
 ./install.sh --no-login --no-lock
 ```
 
-(They need their own copy of the folder, e.g. their own `git clone`.) Running `./uninstall.sh` as any user removes the shared login and lock screens for **everyone**, plus that user's own parts; other users can remove theirs with `./uninstall.sh` too.
+They don't need to be an admin for this, and they need their own copy of the folder (e.g. their own `git clone`).
+
+To remove only your own parts and leave the shared screens for everyone else:
+
+```bash
+./uninstall.sh --no-login --no-lock
+```
+
+A plain `./uninstall.sh` (needs an admin password) removes the shared login and lock screens for **everyone**, plus your own parts.
 
 ### Fedora 44+ and Plasma Login Manager
 
