@@ -80,8 +80,16 @@ Item {
     Timer { interval: 600; running: true; onTriggered: root.grabFocus() }
     // fade to black, then hand over to the login screen; fade back in when you return
     // every monitor fades (key presses reach all of them); only the main one does the switch
+    // preview (kscreenlocker_greet --testing / scripts/preview.sh lock): don't really switch user,
+    // restart or turn off - just say what would happen
+    readonly property bool previewMode: Qt.application.arguments.indexOf("--testing") >= 0
+    function previewSay(what) {
+        statusText = "Preview: this would " + what + ". Unlock to close the preview."
+        statusTimer.interval = 6000; statusTimer.restart()
+    }
     function goOtherUser() {
         if (!isPrimary) return
+        if (previewMode) { previewSay("go to the login screen"); return }
         if (!switchFade.running) switchFade.restart()
     }
 
@@ -135,7 +143,7 @@ Item {
         var a = actions[i]
         if (!a) return
         openOptions(false)
-        if (a.act === "switch") sm.switchUser()
+        if (a.act === "switch") { if (previewMode) previewSay("go to the login screen"); else sm.switchUser() }
         else root.askPower(a.act)
     }
     function askPower(act) {
@@ -196,7 +204,7 @@ Item {
             else if (!root.optionsOpen) password.focusInput()
         }
     }
-    Timer { id: statusTimer; interval: 3500; onTriggered: if (!busy) statusText = "" }
+    Timer { id: statusTimer; interval: 3500; onTriggered: { interval = 3500; if (!busy) statusText = "" } }
     // ask PAM for a new password prompt after a failure
     Timer { id: restartTimer; interval: 3000; onTriggered: if (root.isPrimary) authenticator.startAuthenticating() }
     // password still waiting to be sent after 5 s? ask KDE's checker to start again; it sends when ready
@@ -417,6 +425,7 @@ Item {
         onAccepted: {
             busyThenFade("", function() {
                 var a = confirm.pendingAct
+                if (root.previewMode) { previewPower.start(); return }
                 root.doPower(a)
                 if (a === "suspend" || a === "hibernate") wakeTimer.start()   // bring the screen back after waking
                 else busyFailsafe.start()
@@ -426,6 +435,14 @@ Item {
     }
     // if the system doesn't go down (e.g. blocked), give the screen back
     // Timers don't count while the PC is asleep, so this fires shortly after it wakes up
+    Timer {
+        id: previewPower; interval: 1000
+        onTriggered: {
+            confirm.unfade(); root.afterDialog()
+            var a = confirm.pendingAct
+            root.previewSay(a === "reboot" ? "restart the PC" : a === "off" ? "turn the PC off" : a === "hibernate" ? "hibernate the PC" : "put the PC to sleep")
+        }
+    }
     Timer { id: wakeTimer; interval: 2500; onTriggered: { confirm.unfade(); root.afterDialog() } }
     Timer {
         id: busyFailsafe; interval: 20000
@@ -504,5 +521,15 @@ Item {
             if (confirm.busy) powerFadeShared.restart()
             else { powerFadeShared.stop(); XmbSync.black = 0 }
         }
+    }
+
+    // preview only: a reminder of how to get out
+    HintButton {
+        visible: root.previewMode && root.isPrimary
+        z: 5000
+        s: root.s; fontName: root.fontName
+        keyText: "Preview"; label: "Unlock with your password to close"
+        anchors.top: parent.top; anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: 24 * root.s
     }
 }
