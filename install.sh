@@ -156,7 +156,14 @@ echo "    Login screen ............ $([ $DO_LOGIN = 1 ] && echo yes || echo no)$
 echo "    Lock screen ............. $([ $DO_LOCK = 1 ] && echo yes || echo no)"
 echo "    Shut Down screen ........ $([ $DO_LEAVE = 1 ] && echo yes || echo no)"
 echo "    Black login splash ...... $([ $DO_SPLASH = 1 ] && echo yes || echo no)"
-echo "    Wave clock sync ......... $([ $DO_SYNC = 1 ] && echo yes || echo no)"
+WP_HOME_MAIN="$HOME/.local/share/plasma/wallpapers/$WP_ID/contents/ui/main.qml"
+if [ "$DO_SYNC" = 0 ]; then
+    echo "    Wave clock sync ......... no"
+elif [ -f "$WP_HOME_MAIN" ]; then
+    echo "    Wave clock sync ......... yes"
+else
+    echo "    Wave clock sync ......... skipped (Shader Wallpaper isn't installed - see the README, then run this again)"
+fi
 echo "    Copy monitor setup ...... $([ $DO_DISPLAYS = 1 ] && echo yes || echo no)"
 echo "    Login/lock wave ......... $([ $STILL_WAVE = 1 ] && echo "still$([ -n "$VIRT" ] && echo " (virtual machine detected: $VIRT; use --moving-wave to animate)")" || echo moving)"
 if [ -n "$SHADER" ]; then
@@ -313,6 +320,12 @@ if [ "$SWITCH_DM" = 1 ]; then
     echo "        sudo systemctl disable sddm && sudo systemctl enable $DM_UNIT && sudo reboot"
 fi
 echo "    • To remove everything: ./uninstall.sh"
+# other people with an account here? the shared screens are theirs already; the rest is per user
+OTHERS="$(getent passwd | awk -F: -v me="$USER" '$3 >= 1000 && $3 < 60000 && $1 != me && $7 !~ /(nologin|false)$/ {print $1}' | paste -sd, - | sed 's/,/, /g')"
+if [ -n "$OTHERS" ] && { [ "$DO_LEAVE" = 1 ] || [ "$DO_SPLASH" = 1 ]; }; then
+    echo "    • Other users ($OTHERS) already get the login and lock screens. For their own Shut Down"
+    echo "      screen and splash, they can log in and run: ./install.sh --no-login --no-lock"
+fi
 if [ "${RESTART_SHELL:-0}" = 1 ]; then
     echo "    • Restart the desktop to load the wallpaper change: plasmashell --replace &> /dev/null & disown"
 fi

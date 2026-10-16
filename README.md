@@ -68,15 +68,38 @@ cd xmb-ps3-theme
 ./install.sh
 ```
 
-Run it as your normal user. It asks for your password when it needs `sudo`. Skip any part with:
+Run it as your normal user. It asks for your password when it needs `sudo`.
 
+### Options
+
+Add any of these after `./install.sh`, e.g. `./install.sh --no-splash --yes`:
+
+| Option | What it does | Affects |
+|---|---|---|
+| `--no-login` | Don't install the login screen | Everyone |
+| `--no-lock` | Don't install the lock screen | Everyone |
+| `--no-leave` | Don't install the Shut Down / Restart screen | Just you |
+| `--no-splash` | Keep your current loading splash | Just you |
+| `--no-sync` | Don't change Shader Wallpaper (the desktop wave won't line up with the login/lock wave) | Just you |
+| `--no-displays` | Don't copy your monitor setup to the login screen | Everyone |
+| `--use-sddm` | Switch to SDDM if your PC uses another login manager ([see below](#fedora-44-and-plasma-login-manager)) | Everyone |
+| `--still-wave` | Keep the login/lock wave still (saves CPU on PCs without a proper graphics card) | Everyone |
+| `--moving-wave` | Animate the wave even in a virtual machine | Everyone |
+| `--shader FILE` | Use a different compiled wave shader (`.frag.qsb`) | Everyone |
+| `-y`, `--yes` | Don't ask "Continue?" | n/a |
+| `-h`, `--help` | List the options | n/a |
+
+**Virtual machines:** the installer detects them and keeps the login and lock screen wave **still**, because redrawing the full-screen wave without a graphics card can freeze the VM window (GNOME Boxes even crashes). Use `--moving-wave` to animate it anyway.
+
+### More than one user on the PC
+
+The **login screen** and **lock screen** are shared: install once and every user gets them. The **Shut Down screen**, **splash** and **wave clock sync** belong to each user's own settings, so other users keep KDE's normal ones until they run the installer themselves, skipping the shared parts:
+
+```bash
+./install.sh --no-login --no-lock
 ```
---no-login  --no-lock  --no-leave  --no-splash  --no-sync  --no-displays  --shader FILE  --yes
-```
 
-and add `--use-sddm` to switch to SDDM if your PC uses a different login manager (see below).
-
-**Virtual machines:** the installer detects them and keeps the login and lock screen wave **still**, because redrawing the full-screen wave without a graphics card can freeze the VM window (GNOME Boxes even crashes). Use `--moving-wave` to animate it anyway, or `--still-wave` on a real PC that struggles.
+(They need their own copy of the folder, e.g. their own `git clone`.) Running `./uninstall.sh` as any user removes the shared login and lock screens for **everyone**, plus that user's own parts; other users can remove theirs with `./uninstall.sh` too.
 
 ### Fedora 44+ and Plasma Login Manager
 
