@@ -156,7 +156,7 @@ if [ "$STILL_WAVE" = auto ]; then
     fi
 fi
 # a tiny marker image; the login and lock screens look for it
-mark_still() { [ "$STILL_WAVE" = 1 ] && sudo cp "$HERE/lockscreen/xmb/assets/sparkle.png" "$1/assets/still.png"; return 0; }
+mark_still() { [ "$STILL_WAVE" = 1 ] && sudo install -m 644 "$HERE/lockscreen/xmb/assets/sparkle.png" "$1/assets/still.png"; return 0; }
 
 # ---------------------------------------------------------------- what's already here
 LOGIN_SHARED=0; [ -d "$SDDM_THEME_DIR" ] && LOGIN_SHARED=1
@@ -242,8 +242,11 @@ if [ "$DO_LOGIN" = 1 ]; then
     fi
     sudo rm -rf "$SDDM_THEME_DIR"
     sudo cp -r "$HERE/sddm/xmb-ps3" "$SDDM_THEME_DIR"
-    [ -n "$SHADER" ] && sudo cp "$SHADER" "$SDDM_THEME_DIR/xmb-wave.frag.qsb"
+    [ -n "$SHADER" ] && sudo install -m 644 "$SHADER" "$SDDM_THEME_DIR/xmb-wave.frag.qsb"
     mark_still "$SDDM_THEME_DIR"
+    # the login screen runs as the sddm user: make sure it can read everything, whatever the
+    # permissions of the files we copied from (a private file would silently fall back to the blue picture)
+    sudo chmod -R u+rwX,go+rX,go-w "$SDDM_THEME_DIR"
     ok "Theme copied to $SDDM_THEME_DIR"
 
     # remember the current theme, then switch
@@ -293,8 +296,9 @@ if [ "$DO_LOCK" = 1 ]; then
     sudo rm -rf /usr/local/share/xmb-lockscreen/xmb
     sudo cp -r "$HERE/lockscreen/xmb" /usr/local/share/xmb-lockscreen/xmb
     sudo cp "$HERE/lockscreen/LockScreen-shim.qml" /usr/local/share/xmb-lockscreen/
-    [ -n "$SHADER" ] && sudo cp "$SHADER" /usr/local/share/xmb-lockscreen/xmb/xmb-wave.frag.qsb
+    [ -n "$SHADER" ] && sudo install -m 644 "$SHADER" /usr/local/share/xmb-lockscreen/xmb/xmb-wave.frag.qsb
     mark_still /usr/local/share/xmb-lockscreen/xmb
+    sudo chmod -R u+rwX,go+rX,go-w /usr/local/share/xmb-lockscreen   # the lock screen runs as each user
     sudo install -m 755 "$HERE/lockscreen/xmb-lockscreen-apply" "$HERE/lockscreen/xmb-lockscreen-restore" /usr/local/bin/
     sudo install -m 644 "$HERE/lockscreen/xmb-lockscreen.path" "$HERE/lockscreen/xmb-lockscreen.service" /etc/systemd/system/
     sudo /usr/local/bin/xmb-lockscreen-apply

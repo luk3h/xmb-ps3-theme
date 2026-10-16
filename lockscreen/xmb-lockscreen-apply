@@ -7,6 +7,7 @@ F="$D/LockScreen.qml"
 # always refresh our files
 rm -rf "$D/xmb"
 cp -r "$SRC/xmb" "$D/xmb"
+chmod -R u+rwX,go+rX,go-w "$D/xmb"     # readable by every user (the lock screen runs as them)
 # already ours? just refresh the loader (it may be a newer version)
 if grep -q "XMB-LOCKSCREEN-SHIM" "$F"; then cp "$SRC/LockScreen-shim.qml" "$F"; exit 0; fi
 # keep KDE's (possibly freshly updated) original, then swap in ours
