@@ -131,7 +131,8 @@ if [ "$DO_LOCK" = 1 ] && [ ! -f "$SHELL_LOCK/LockScreen.qml" ]; then
     warn "KDE's lock screen file wasn't found at $SHELL_LOCK - skipping the lock screen."
     DO_LOCK=0
 fi
-if [ "$SOUNDS" = 1 ] && ! ls -d /usr/lib*/qt6/qml/QtMultimedia /usr/lib/*/qt6/qml/QtMultimedia >/dev/null 2>&1; then
+# (find, not ls: ls fails if ANY of the paths is missing, which gave a false warning on Fedora)
+if [ "$SOUNDS" = 1 ] && [ -z "$(find /usr/lib /usr/lib64 -maxdepth 4 -type d -name QtMultimedia -path '*qml*' 2>/dev/null | head -1)" ]; then
     warn "Qt Multimedia wasn't found, so the menu sounds will be silent (Fedora: sudo dnf install qt6-qtmultimedia)."
 fi
 if ! ls /usr/lib*/qt6/qml/QtQuick/Effects >/dev/null 2>&1 && ! ls /usr/lib/*/qt6/qml/QtQuick/Effects >/dev/null 2>&1; then
@@ -220,6 +221,12 @@ fi
 # Qt can only play .wav, so other formats are converted with ffmpeg into a temporary folder.
 CUSTOM_SOUNDS=""
 SOUND_NAMES="move select back error open"
+# no --sounds given? use the repo's custom-sounds/ folder if you've put files in it
+if [ -z "$SOUND_DIR" ] && [ -d "$HERE/custom-sounds" ]; then
+    for n in $SOUND_NAMES; do
+        if ls "$HERE/custom-sounds/$n".* >/dev/null 2>&1; then SOUND_DIR="$HERE/custom-sounds"; break; fi
+    done
+fi
 if [ -n "$SOUND_DIR" ] && [ "$SOUNDS" = 1 ]; then
     [ -d "$SOUND_DIR" ] || die "--sounds: folder not found: $SOUND_DIR"
     CUSTOM_SOUNDS="$(mktemp -d)"

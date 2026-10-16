@@ -1,1 +1,4 @@
 *.tar.gz
+# your own sounds stay on your PC (see custom-sounds/README.md)
+custom-sounds/*
+!custom-sounds/README.md
