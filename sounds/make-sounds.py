@@ -20,8 +20,6 @@ def mix(*parts):
 def save(name, s, peak):
     s = s / (np.max(np.abs(s)) + 1e-9) * peak
     fade = int(0.003 * SR); s[-fade:] *= np.linspace(1, 0, fade)
-    # pad with silence to at least 0.3 s: Qt drops sounds shorter than one audio buffer
-    s = np.concatenate([s, np.zeros(max(0, int(0.3 * SR) - len(s)))])
     pcm = (s * 32767).astype('<i2')
     with wave.open(name, 'wb') as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes())
