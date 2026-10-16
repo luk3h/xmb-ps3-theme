@@ -493,8 +493,22 @@ Rectangle {
     function exitPreview() { if (root.previewMode) root.broadcast("quit") }
     function closePreviewWindow() { if (root.previewMode && root.Window.window) root.Window.window.close() }
     Shortcut { sequence: "Ctrl+Q"; enabled: root.previewMode; onActivated: root.exitPreview() }
+    // fades out after a few seconds so screenshots are clean; move the mouse to the top to bring it back
+    property bool previewBannerShown: true
+    Timer { id: previewBannerTimer; interval: 5000; running: root.previewMode; onTriggered: root.previewBannerShown = false }
+    MouseArea {
+        enabled: root.previewMode
+        z: 4999
+        anchors.top: parent.top; anchors.left: parent.left; anchors.right: parent.right
+        height: 110 * root.s
+        hoverEnabled: true
+        acceptedButtons: Qt.NoButton
+        onPositionChanged: { root.previewBannerShown = true; previewBannerTimer.restart() }
+    }
     HintButton {
-        visible: root.previewMode
+        visible: root.previewMode && opacity > 0
+        opacity: root.previewBannerShown ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: 400 } }
         z: 5000
         s: root.s; fontName: root.fontName
         keyText: "Ctrl+Q"; label: "Exit preview"

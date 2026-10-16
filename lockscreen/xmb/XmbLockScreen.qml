@@ -541,8 +541,22 @@ Item {
     }
 
     // preview only: a reminder of how to get out
+    // fades out after a few seconds so screenshots are clean; move the mouse to the top to bring it back
+    property bool previewBannerShown: true
+    Timer { id: previewBannerTimer; interval: 5000; running: root.previewMode && root.isPrimary; onTriggered: root.previewBannerShown = false }
+    MouseArea {
+        enabled: root.previewMode && root.isPrimary
+        z: 4999
+        anchors.top: parent.top; anchors.left: parent.left; anchors.right: parent.right
+        height: 110 * root.s
+        hoverEnabled: true
+        acceptedButtons: Qt.NoButton
+        onPositionChanged: { root.previewBannerShown = true; previewBannerTimer.restart() }
+    }
     HintButton {
-        visible: root.previewMode && root.isPrimary
+        visible: root.previewMode && root.isPrimary && opacity > 0
+        opacity: root.previewBannerShown ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: 400 } }
         z: 5000
         s: root.s; fontName: root.fontName
         keyText: "Preview"; label: "Unlock with your password to close"

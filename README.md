@@ -151,6 +151,17 @@ The built-in sounds are original ones made for this theme. To use your own, put 
 
 Files you put there are ignored by git, so they stay on your PC. You can also point at any other folder with `./install.sh --sounds ~/some-folder`. Only use sounds you have the right to use: this project doesn't include or link to anyone else's.
 
+### Previews and screenshots
+
+Try the screens safely, without locking or logging out:
+
+```bash
+scripts/preview.sh login    # login screen preview; can't sign in or turn anything off. Close with Ctrl+Q
+scripts/preview.sh lock     # lock screen preview; unlock with your password, or it closes after 60 s
+```
+
+In the previews, Other User and the power buttons only show a note instead of really switching user or restarting. The banner at the top fades after 5 seconds (move the mouse to the top to bring it back), so you can take clean screenshots with Spectacle.
+
 ## Uninstall
 
 ```bash
