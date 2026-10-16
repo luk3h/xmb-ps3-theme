@@ -231,7 +231,7 @@ if [ -n "$SOUND_DIR" ] && [ "$SOUNDS" = 1 ]; then
     [ -d "$SOUND_DIR" ] || die "--sounds: folder not found: $SOUND_DIR"
     CUSTOM_SOUNDS="$(mktemp -d)"
     trap 'rm -rf "$CUSTOM_SOUNDS"' EXIT
-    FOUND="" LOUDER=""
+    FOUND=""
     for n in $SOUND_NAMES; do
         src=""
         for ext in wav mp3 flac ogg m4a opus; do
@@ -240,14 +240,9 @@ if [ -n "$SOUND_DIR" ] && [ "$SOUNDS" = 1 ]; then
         [ -n "$src" ] || continue
         # convert to a plain .wav, padded with silence to at least 0.3 s: Qt drops sounds shorter
         # than one audio buffer, which made very short clicks (e.g. 0.05 s) silent
-        # also boost quiet files so their loudest point reaches -1 dB (many downloaded sounds peak
-        # 20-30 dB lower, which makes short clicks practically inaudible)
         if command -v ffmpeg >/dev/null; then
-            peak="$(ffmpeg -nostdin -hide_banner -i "$src" -af volumedetect -f null - 2>&1 | sed -n 's/.*max_volume: \(-\{0,1\}[0-9.]*\) dB.*/\1/p' | tail -1)"
-            gain="$(awk -v p="${peak:-0}" 'BEGIN { g = -1 - p; if (g < 0) g = 0; printf "%.1f", g }')"
-            ffmpeg -nostdin -loglevel error -y -i "$src" -af "volume=${gain}dB,apad=whole_dur=0.3" -ac 2 -ar 48000 -c:a pcm_s16le "$CUSTOM_SOUNDS/$n.wav" \
+            ffmpeg -nostdin -loglevel error -y -i "$src" -af "apad=whole_dur=0.3" -ac 2 -ar 48000 -c:a pcm_s16le "$CUSTOM_SOUNDS/$n.wav" \
                 || die "--sounds: couldn't convert $src"
-            [ "$gain" != 0.0 ] && LOUDER="$LOUDER $n(+${gain}dB)"
         elif [ "${src##*.}" = wav ]; then
             cp "$src" "$CUSTOM_SOUNDS/$n.wav"
             warn "--sounds: ffmpeg not found - $n.wav is used as it is (very short sounds may be silent)"
@@ -257,7 +252,6 @@ if [ -n "$SOUND_DIR" ] && [ "$SOUNDS" = 1 ]; then
         FOUND="$FOUND $n"
     done
     [ -n "$FOUND" ] || die "--sounds: no files named move/select/back/error/open found in $SOUND_DIR"
-    [ -n "${LOUDER:-}" ] && warn "Made quiet sounds louder:$LOUDER"
 fi
 # put your sounds over the built-in ones in a screen's folder (the ones you didn't provide stay)
 use_custom_sounds() {   # use_custom_sounds DIR [sudo|command]

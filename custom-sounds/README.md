@@ -15,7 +15,7 @@ For example `move.wav`, `select.mp3`, `error.flac`. You don't need all five: any
 built-in sound.
 
 **Formats:** `.wav` works as it is. `.mp3`, `.flac`, `.ogg`, `.m4a` and `.opus` are converted
-automatically if `ffmpeg` is installed. The installer also makes quiet files louder (peak −1 dB) and pads very short ones with a little silence, so they always play (Fedora: `sudo dnf install ffmpeg-free`,
+automatically if `ffmpeg` is installed (Fedora: `sudo dnf install ffmpeg-free`,
 Ubuntu/Debian: `sudo apt install ffmpeg`).
 
 **Then:**
