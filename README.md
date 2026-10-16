@@ -185,7 +185,7 @@ scripts/preview.sh login    # login screen preview; can't sign in or turn anythi
 scripts/preview.sh lock     # lock screen preview; unlock with your password, or it closes after 60 s
 ```
 
-In the previews, Other User and the power buttons only show a note instead of really switching user or restarting. The banner at the top fades after 5 seconds (move the mouse to the top to bring it back), so you can take clean screenshots with Spectacle. `scripts/screenshots.sh` retakes all the README screenshots automatically, each in a different hour's colour.
+In the previews, Other User and the power buttons only show a note instead of really switching user or restarting. The banner at the top fades after 5 seconds (move the mouse to the top to bring it back), so you can take clean screenshots with Spectacle. `scripts/screenshots.sh` retakes all the README screenshots automatically, each in a different hour's colour. `scripts/demo.sh` plays and records a smooth, evenly timed demo (it presses the keys for you with `ydotool` and records with GPU Screen Recorder); it never types your password.
 
 ## Uninstall
 
