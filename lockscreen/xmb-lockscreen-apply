@@ -7,8 +7,8 @@ F="$D/LockScreen.qml"
 # always refresh our files
 rm -rf "$D/xmb"
 cp -r "$SRC/xmb" "$D/xmb"
-# already ours? nothing else to do
-grep -q "XMB-LOCKSCREEN-SHIM" "$F" && exit 0
+# already ours? just refresh the loader (it may be a newer version)
+if grep -q "XMB-LOCKSCREEN-SHIM" "$F"; then cp "$SRC/LockScreen-shim.qml" "$F"; exit 0; fi
 # keep KDE's (possibly freshly updated) original, then swap in ours
 cp "$F" "$D/LockScreen.breeze.qml"
 cp "$SRC/LockScreen-shim.qml" "$F"

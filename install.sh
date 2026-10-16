@@ -29,6 +29,8 @@ SHADER=""
 ASSUME_YES=0
 USE_SDDM=0
 STILL_WAVE=auto
+CHOOSE=0
+LOCK_ME=""        # on / off: use the shared XMB lock screen for this account or not
 
 usage() {
     cat <<EOF
@@ -47,6 +49,9 @@ Usage: ./install.sh [options]
   --still-wave      keep the login/lock wave still (automatic in virtual machines; saves CPU
                     on PCs without a proper graphics card)
   --moving-wave     always animate the wave, even in a virtual machine
+  --choose          ask about each part one by one (good for a second user on the same PC)
+  --lock-off-for-me use KDE's normal lock screen for your account (the XMB one stays for others)
+  --lock-on-for-me  use the XMB lock screen for your account again
   -y, --yes         don't ask for confirmation
   -h, --help        show this help
 EOF
@@ -57,6 +62,9 @@ while [ $# -gt 0 ]; do
         --no-login) DO_LOGIN=0 ;;
         --use-sddm) USE_SDDM=1 ;;
         --still-wave) STILL_WAVE=1 ;;
+        --choose) CHOOSE=1 ;;
+        --lock-off-for-me) LOCK_ME=off ;;
+        --lock-on-for-me) LOCK_ME=on ;;
         --moving-wave) STILL_WAVE=0 ;;
         --no-lock) DO_LOCK=0 ;;
         --no-leave) DO_LEAVE=0 ;;
@@ -150,13 +158,56 @@ fi
 # a tiny marker image; the login and lock screens look for it
 mark_still() { [ "$STILL_WAVE" = 1 ] && sudo cp "$HERE/lockscreen/xmb/assets/sparkle.png" "$1/assets/still.png"; return 0; }
 
+# ---------------------------------------------------------------- what's already here
+LOGIN_SHARED=0; [ -d "$SDDM_THEME_DIR" ] && LOGIN_SHARED=1
+LOCK_SHARED=0;  [ -x /usr/local/bin/xmb-lockscreen-restore ] && LOCK_SHARED=1
+WP_HOME_MAIN="$HOME/.local/share/plasma/wallpapers/$WP_ID/contents/ui/main.qml"
+LOCK_OFF_FLAG="$STATE_DIR/lockscreen-off.png"     # the shared lock screen looks for this in each user's config
+
+# ---------------------------------------------------------------- --choose: ask about each part
+ask() {   # ask "question" -> yes unless the answer starts with n
+    local a; read -r -p "$1 [Y/n] " a
+    case "$a" in [nN]*) return 1 ;; *) return 0 ;; esac
+}
+if [ "$CHOOSE" = 1 ]; then
+    say "Choose what to install (just press Enter for yes)"
+    echo "    Shared parts are the same for everyone on this PC and need an admin password."
+    echo "    Your parts only change your own account."
+    echo
+    if [ "$LOGIN_SHARED" = 1 ]; then
+        echo "  Login screen (shared): already installed - leaving it as it is"; DO_LOGIN=0
+    elif [ "$DO_LOGIN" = 1 ]; then
+        ask "  Login screen (shared) - install it?" || DO_LOGIN=0
+    fi
+    if [ "$LOCK_SHARED" = 1 ]; then
+        DO_LOCK=0
+        if ask "  Lock screen (shared, already installed) - use it for YOUR account? (n = KDE's normal one)"; then LOCK_ME=on; else LOCK_ME=off; fi
+    elif [ "$DO_LOCK" = 1 ]; then
+        ask "  Lock screen (shared) - install it?" || DO_LOCK=0
+    fi
+    [ "$DO_LEAVE" = 1 ]  && { ask "  Shut Down screen (your account) - install it?" || DO_LEAVE=0; }
+    [ "$DO_SPLASH" = 1 ] && { ask "  Black loading splash (your account) - install it?" || DO_SPLASH=0; }
+    if [ "$DO_SYNC" = 1 ] && [ -f "$WP_HOME_MAIN" ]; then
+        ask "  Line your desktop wave up with the login/lock wave (your account; changes Shader Wallpaper)?" || DO_SYNC=0
+    fi
+    if [ "$DO_LOGIN" = 1 ] && [ "$DO_DISPLAYS" = 1 ]; then
+        ask "  Give the login screen your monitor setup (shared)?" || DO_DISPLAYS=0
+    fi
+    echo
+fi
+[ "$LOCK_ME" = off ] && [ "$DO_LOCK" = 1 ] && warn "--lock-off-for-me: the lock screen is still installed for others; your account uses KDE's normal one."
+
+if [ "$DO_LOGIN$DO_LOCK$DO_LEAVE$DO_SPLASH$DO_SYNC" = 00000 ] && [ -z "$LOCK_ME" ]; then
+    echo "Nothing to install - all parts were skipped."; exit 0
+fi
+
 # ---------------------------------------------------------------- summary
 say "XMB PS3 theme installer (Plasma $PLASMA_VER)"
 echo "    Login screen ............ $([ $DO_LOGIN = 1 ] && echo yes || echo no)$([ $SWITCH_DM = 1 ] && echo " (switches from ${DM_UNIT%.service} to SDDM)")"
-echo "    Lock screen ............. $([ $DO_LOCK = 1 ] && echo yes || echo no)"
+echo "    Lock screen ............. $([ $DO_LOCK = 1 ] && echo yes || { [ $LOCK_SHARED = 1 ] && echo "already installed (shared)" || echo no; })"
+[ -n "$LOCK_ME" ] && echo "    Lock screen for you ..... $([ $LOCK_ME = on ] && echo "XMB" || echo "KDE's normal one")"
 echo "    Shut Down screen ........ $([ $DO_LEAVE = 1 ] && echo yes || echo no)"
 echo "    Black login splash ...... $([ $DO_SPLASH = 1 ] && echo yes || echo no)"
-WP_HOME_MAIN="$HOME/.local/share/plasma/wallpapers/$WP_ID/contents/ui/main.qml"
 if [ "$DO_SYNC" = 0 ]; then
     echo "    Wave clock sync ......... no"
 elif [ -f "$WP_HOME_MAIN" ]; then
@@ -164,7 +215,7 @@ elif [ -f "$WP_HOME_MAIN" ]; then
 else
     echo "    Wave clock sync ......... skipped (Shader Wallpaper isn't installed - see the README, then run this again)"
 fi
-echo "    Copy monitor setup ...... $([ $DO_DISPLAYS = 1 ] && echo yes || echo no)"
+echo "    Copy monitor setup ...... $([ $DO_DISPLAYS = 1 ] && [ $DO_LOGIN = 1 ] && echo yes || echo no)"
 echo "    Login/lock wave ......... $([ $STILL_WAVE = 1 ] && echo "still$([ -n "$VIRT" ] && echo " (virtual machine detected: $VIRT; use --moving-wave to animate)")" || echo moving)"
 if [ -n "$SHADER" ]; then
     echo "    Wave shader ............. $SHADER"
@@ -252,6 +303,16 @@ if [ "$DO_LOCK" = 1 ]; then
     ok "Lock screen installed (re-applied automatically after Plasma updates)"
 fi
 
+# ---------------------------------------------------------------- your own lock screen choice
+if [ "$LOCK_ME" = off ]; then
+    mkdir -p "$STATE_DIR"
+    cp "$HERE/lockscreen/xmb/assets/sparkle.png" "$LOCK_OFF_FLAG"
+    ok "Your account will use KDE's normal lock screen (undo: ./install.sh --lock-on-for-me)"
+elif [ "$LOCK_ME" = on ]; then
+    rm -f "$LOCK_OFF_FLAG"
+    ok "Your account uses the XMB lock screen"
+fi
+
 # ---------------------------------------------------------------- Shut Down screen + splash
 if [ "$DO_LEAVE" = 1 ] || [ "$DO_SPLASH" = 1 ]; then
     say "Installing the Shut Down screen / splash"
@@ -311,9 +372,11 @@ fi
 # ---------------------------------------------------------------- done
 echo
 say "Done!"
-echo "    • Lock screen:  press Meta+L      (safe test: timeout 60 /usr/libexec/kscreenlocker_greet --testing)"
+if [ "$DO_LOCK" = 1 ] || [ "$LOCK_SHARED" = 1 ]; then
+    echo "    • Lock screen:  press Meta+L      (safe test: scripts/preview.sh lock)"
+fi
 if [ "$DO_LOGIN" = 1 ]; then
-    echo "    • Login screen: log out or restart (preview: sddm-greeter-qt6 --test-mode --theme $SDDM_THEME_DIR)"
+    echo "    • Login screen: log out or restart (safe test: scripts/preview.sh login)"
 fi
 if [ "$SWITCH_DM" = 1 ]; then
     echo "    • If the login screen ever doesn't appear after restarting: press Ctrl+Alt+F3, log in, then run"
@@ -322,9 +385,10 @@ fi
 echo "    • To remove everything: ./uninstall.sh"
 # other people with an account here? the shared screens are theirs already; the rest is per user
 OTHERS="$(getent passwd | awk -F: -v me="$USER" '$3 >= 1000 && $3 < 60000 && $1 != me && $7 !~ /(nologin|false)$/ {print $1}' | paste -sd, - | sed 's/,/, /g')"
-if [ -n "$OTHERS" ] && { [ "$DO_LEAVE" = 1 ] || [ "$DO_SPLASH" = 1 ]; }; then
+if [ -n "$OTHERS" ] && { [ "$DO_LOGIN" = 1 ] || [ "$DO_LOCK" = 1 ]; }; then
     echo "    • Other users ($OTHERS) already get the login and lock screens. For their own Shut Down"
-    echo "      screen and splash, they can log in and run: ./install.sh --no-login --no-lock"
+    echo "      screen and splash (or to turn the XMB lock screen off for themselves), they can log in"
+    echo "      and run: ./install.sh --choose"
 fi
 if [ "${RESTART_SHELL:-0}" = 1 ]; then
     echo "    • Restart the desktop to load the wallpaper change: plasmashell --replace &> /dev/null & disown"

@@ -76,8 +76,11 @@ Add any of these after `./install.sh`, e.g. `./install.sh --no-splash --yes`:
 
 | Option | What it does | Affects |
 |---|---|---|
-| `--no-login` | Don't install the login screen | Everyone |
-| `--no-lock` | Don't install the lock screen | Everyone |
+| `--choose` | Ask about each part one by one, instead of installing everything | n/a |
+| `--no-login` | Skip installing the login screen. If it's already installed, everyone still sees it | Everyone |
+| `--no-lock` | Skip installing the lock screen. If it's already installed, everyone still sees it | Everyone |
+| `--lock-off-for-me` | Use KDE's normal lock screen for **your account**, while others keep the XMB one | Just you |
+| `--lock-on-for-me` | Use the XMB lock screen for your account again | Just you |
 | `--no-leave` | Don't install the Shut Down / Restart screen | Just you |
 | `--no-splash` | Keep your current loading splash | Just you |
 | `--no-sync` | Don't change Shader Wallpaper (the desktop wave won't line up with the login/lock wave) | Just you |
@@ -93,13 +96,21 @@ Add any of these after `./install.sh`, e.g. `./install.sh --no-splash --yes`:
 
 ### More than one user on the PC
 
-The **login screen** and **lock screen** are shared: install once and every user gets them. The **Shut Down screen**, **splash** and **wave clock sync** belong to each user's own settings, so other users keep KDE's normal ones until they run the installer themselves, skipping the shared parts:
+| Part | Shared or per user? |
+|---|---|
+| Login screen | **Shared.** It appears before anyone logs in, so everyone gets the same one |
+| Lock screen | **Shared**, but each user can switch it off for themselves (`--lock-off-for-me`) |
+| Shut Down screen, loading splash, wave sync | **Per user.** Other users keep KDE's normal ones until they choose them |
+
+After you've installed it, any other user can log in and pick exactly what they want. No admin password is needed for their own parts:
 
 ```bash
-./install.sh --no-login --no-lock
+git clone https://github.com/luk3h/xmb-ps3-theme.git
+cd xmb-ps3-theme
+./install.sh --choose
 ```
 
-They don't need to be an admin for this, and they need their own copy of the folder (e.g. their own `git clone`).
+It asks one question per part, for example *"Lock screen (shared, already installed) - use it for YOUR account?"*. Answering **n** to everything leaves their account vanilla, apart from the login screen, which can't be per user.
 
 To remove only your own parts and leave the shared screens for everyone else:
 
@@ -108,25 +119,6 @@ To remove only your own parts and leave the shared screens for everyone else:
 ```
 
 A plain `./uninstall.sh` (needs an admin password) removes the shared login and lock screens for **everyone**, plus your own parts.
-
-### Fedora 44+ and Plasma Login Manager
-
-New installs of Fedora 44 KDE (and possibly other distros later) use KDE's new **Plasma Login Manager** instead of SDDM. It can't load custom themes, so the installer **skips the login screen** there; the lock screen, Shut Down screen and everything else still install. (PCs upgraded from an older Fedora keep SDDM and get everything.)
-
-To get the XMB login screen as well, switch to SDDM:
-
-```bash
-./install.sh --use-sddm
-```
-
-This installs SDDM if needed and makes it the login manager from your next restart. `./uninstall.sh` switches back to Plasma Login Manager. If the login screen ever doesn't appear after restarting, press **Ctrl+Alt+F3**, log in, and run `sudo systemctl disable sddm && sudo systemctl enable plasmalogin && sudo reboot`.
-
-**Test safely before relying on it:**
-
-```bash
-scripts/preview.sh login    # login screen preview; can't sign in or turn off. Exit with Ctrl+Q / the Exit preview button
-scripts/preview.sh lock     # lock screen preview; unlock with your password, or it closes after 60 s. Other User / power buttons are safe here
-```
 
 ## Uninstall
 
