@@ -31,6 +31,7 @@ USE_SDDM=0
 STILL_WAVE=auto
 CHOOSE=0
 SOUNDS=1
+SOUND_DIR=""      # --sounds DIR: your own sound files instead of the built-in ones
 LOCK_ME=""        # on / off: use the shared XMB lock screen for this account or not
 
 usage() {
@@ -51,6 +52,8 @@ Usage: ./install.sh [options]
                     on PCs without a proper graphics card)
   --moving-wave     always animate the wave, even in a virtual machine
   --no-sounds       no menu sounds on the login, lock and Shut Down screens
+  --sounds DIR      use your own sounds from DIR: move, select, back, error, open
+                    (.wav, or .mp3/.flac/.ogg/.m4a/.opus if ffmpeg is installed)
   --choose          ask about each part one by one (good for a second user on the same PC)
   --lock-off-for-me use KDE's normal lock screen for your account (the XMB one stays for others)
   --lock-on-for-me  use the XMB lock screen for your account again
@@ -66,6 +69,7 @@ while [ $# -gt 0 ]; do
         --still-wave) STILL_WAVE=1 ;;
         --choose) CHOOSE=1 ;;
         --no-sounds) SOUNDS=0 ;;
+        --sounds) SOUND_DIR="${2:-}"; shift ;;
         --lock-off-for-me) LOCK_ME=off ;;
         --lock-on-for-me) LOCK_ME=on ;;
         --moving-wave) STILL_WAVE=0 ;;
@@ -212,6 +216,39 @@ if [ "$DO_LOGIN$DO_LOCK$DO_LEAVE$DO_SPLASH$DO_SYNC" = 00000 ] && [ -z "$LOCK_ME"
     echo "Nothing to install - all parts were skipped."; exit 0
 fi
 
+# ---------------------------------------------------------------- your own sounds (--sounds DIR)
+# Qt can only play .wav, so other formats are converted with ffmpeg into a temporary folder.
+CUSTOM_SOUNDS=""
+SOUND_NAMES="move select back error open"
+if [ -n "$SOUND_DIR" ] && [ "$SOUNDS" = 1 ]; then
+    [ -d "$SOUND_DIR" ] || die "--sounds: folder not found: $SOUND_DIR"
+    CUSTOM_SOUNDS="$(mktemp -d)"
+    trap 'rm -rf "$CUSTOM_SOUNDS"' EXIT
+    FOUND=""
+    for n in $SOUND_NAMES; do
+        src=""
+        for ext in wav mp3 flac ogg m4a opus; do
+            [ -f "$SOUND_DIR/$n.$ext" ] && { src="$SOUND_DIR/$n.$ext"; break; }
+        done
+        [ -n "$src" ] || continue
+        if [ "${src##*.}" = wav ]; then
+            cp "$src" "$CUSTOM_SOUNDS/$n.wav"
+        elif command -v ffmpeg >/dev/null; then
+            ffmpeg -loglevel error -y -i "$src" -ac 2 -ar 48000 -c:a pcm_s16le "$CUSTOM_SOUNDS/$n.wav" \
+                || die "--sounds: couldn't convert $src"
+        else
+            die "--sounds: $src needs converting to .wav - install ffmpeg (Fedora: sudo dnf install ffmpeg-free) or convert it yourself"
+        fi
+        FOUND="$FOUND $n"
+    done
+    [ -n "$FOUND" ] || die "--sounds: no files named move/select/back/error/open found in $SOUND_DIR"
+fi
+# put your sounds over the built-in ones in a screen's folder (the ones you didn't provide stay)
+use_custom_sounds() {   # use_custom_sounds DIR [sudo|command]
+    [ -n "$CUSTOM_SOUNDS" ] || return 0
+    for f in "$CUSTOM_SOUNDS"/*.wav; do ${2:-sudo} install -m 644 "$f" "$1/sounds/"; done
+}
+
 # ---------------------------------------------------------------- summary
 say "XMB PS3 theme installer (Plasma $PLASMA_VER)"
 echo "    Login screen ............ $([ $DO_LOGIN = 1 ] && echo yes || echo no)$([ $SWITCH_DM = 1 ] && echo " (switches from ${DM_UNIT%.service} to SDDM)")"
@@ -227,7 +264,7 @@ else
     echo "    Wave clock sync ......... skipped (Shader Wallpaper isn't installed - see the README, then run this again)"
 fi
 echo "    Copy monitor setup ...... $([ $DO_DISPLAYS = 1 ] && [ $DO_LOGIN = 1 ] && echo yes || echo no)"
-echo "    Menu sounds ............. $([ $SOUNDS = 1 ] && echo yes || echo no)"
+echo "    Menu sounds ............. $([ $SOUNDS = 0 ] && echo no || { [ -n "$CUSTOM_SOUNDS" ] && echo "yours:$FOUND (from $SOUND_DIR)" || echo yes; })"
 echo "    Login/lock wave ......... $([ $STILL_WAVE = 1 ] && echo "still$([ -n "$VIRT" ] && echo " (virtual machine detected: $VIRT; use --moving-wave to animate)")" || echo moving)"
 if [ -n "$SHADER" ]; then
     echo "    Wave shader ............. $SHADER"
@@ -257,6 +294,7 @@ if [ "$DO_LOGIN" = 1 ]; then
     [ -n "$SHADER" ] && sudo install -m 644 "$SHADER" "$SDDM_THEME_DIR/xmb-wave.frag.qsb"
     mark_still "$SDDM_THEME_DIR"
     mark_quiet "$SDDM_THEME_DIR"
+    use_custom_sounds "$SDDM_THEME_DIR"
     # the login screen runs as the sddm user: make sure it can read everything, whatever the
     # permissions of the files we copied from (a private file would silently fall back to the blue picture)
     sudo chmod -R u+rwX,go+rX,go-w "$SDDM_THEME_DIR"
@@ -312,6 +350,7 @@ if [ "$DO_LOCK" = 1 ]; then
     [ -n "$SHADER" ] && sudo install -m 644 "$SHADER" /usr/local/share/xmb-lockscreen/xmb/xmb-wave.frag.qsb
     mark_still /usr/local/share/xmb-lockscreen/xmb
     mark_quiet /usr/local/share/xmb-lockscreen/xmb
+    use_custom_sounds /usr/local/share/xmb-lockscreen/xmb
     sudo chmod -R u+rwX,go+rX,go-w /usr/local/share/xmb-lockscreen   # the lock screen runs as each user
     sudo install -m 755 "$HERE/lockscreen/xmb-lockscreen-apply" "$HERE/lockscreen/xmb-lockscreen-restore" /usr/local/bin/
     sudo install -m 644 "$HERE/lockscreen/xmb-lockscreen.path" "$HERE/lockscreen/xmb-lockscreen.service" /etc/systemd/system/
@@ -340,6 +379,7 @@ if [ "$DO_LEAVE" = 1 ] || [ "$DO_SPLASH" = 1 ]; then
     [ "$DO_LEAVE" = 1 ]  || rm -rf "$LNF_DIR/contents/logout"
     [ "$DO_SPLASH" = 1 ] || rm -rf "$LNF_DIR/contents/splash"
     [ -d "$LNF_DIR/contents/logout" ] && mark_quiet "$LNF_DIR/contents/logout" command
+    [ -d "$LNF_DIR/contents/logout" ] && use_custom_sounds "$LNF_DIR/contents/logout" command
 
     if [ "$DO_LEAVE" = 1 ]; then
         save_state lookandfeel "$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)"

@@ -89,6 +89,7 @@ Add any of these after `./install.sh`, e.g. `./install.sh --no-splash --yes`:
 | `--no-displays` | Don't copy your monitor setup to the login screen | Everyone |
 | `--use-sddm` | Switch to SDDM if your PC uses another login manager ([see below](#fedora-44-and-plasma-login-manager)) | Everyone |
 | `--no-sounds` | No menu sounds on the login, lock and Shut Down screens | Everyone (login/lock), just you (Shut Down) |
+| `--sounds DIR` | Use your own sound files instead of the built-in ones ([see below](#using-your-own-sounds)) | Everyone (login/lock), just you (Shut Down) |
 | `--still-wave` | Keep the login/lock wave still (saves CPU on PCs without a proper graphics card) | Everyone |
 | `--moving-wave` | Animate the wave even in a virtual machine | Everyone |
 | `--shader FILE` | Use a different compiled wave shader (`.frag.qsb`) | Everyone |
@@ -143,6 +144,26 @@ What the installer changes in the plugin (`~/.local/share/plasma/wallpapers/onli
 **Shader Wallpaper version 4** (built from source on [GitHub](https://github.com/y4my4my4m/kde-shader-wallpaper), not on the KDE Store) works differently, so the installer can't add the wave to it. Use its **Import** button instead and choose `shaders/xmb-wave.frag` from this folder. The clock sync isn't available there.
 
 **In a virtual machine**, keep a normal image wallpaper. The installer makes the login and lock wave still in VMs, but the desktop wallpaper always animates, and without a graphics card that makes the whole VM sluggish.
+
+### Using your own sounds
+
+The built-in sounds are original ones made for this theme. To use different ones, put your files in a folder and name them after what they're for:
+
+| File name | Plays when |
+|---|---|
+| `move` | Moving between users or options |
+| `select` | Enter / choosing something / opening Options |
+| `back` | Closing Options, No, cancelling |
+| `error` | An empty or wrong password |
+| `open` | The login or lock screen appearing |
+
+`.wav` works as it is. `.mp3`, `.flac`, `.ogg`, `.m4a` and `.opus` are converted automatically if `ffmpeg` is installed (Fedora: `sudo dnf install ffmpeg-free`). You don't need all five: any you leave out keep the built-in sound. Then:
+
+```bash
+./install.sh --sounds ~/my-xmb-sounds
+```
+
+Keep the folder, and add `--sounds ~/my-xmb-sounds` again whenever you re-run the installer, or the built-in sounds come back. Short sounds (under a second) feel best. Only use sounds you have the right to use: this project doesn't include or link to anyone else's.
 
 ## Uninstall
 

@@ -22,4 +22,5 @@ for d in ../sddm/xmb-ps3 ../lockscreen/xmb ../plasma/com.github.luk3h.xmbps3/con
 done
 ```
 
-and run `./install.sh` again. Turn the sounds off with `./install.sh --no-sounds`.
+and run `./install.sh` again. Turn the sounds off with `./install.sh --no-sounds`, or use your own files with
+`./install.sh --sounds DIR` (see "Using your own sounds" in the main README).
