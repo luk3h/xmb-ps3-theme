@@ -33,6 +33,7 @@ CHOOSE=0
 SOUNDS=1
 SOUND_DIR=""      # --sounds DIR: your own sound files instead of the built-in ones
 LOCK_ME=""        # on / off: use the shared XMB lock screen for this account or not
+WP_ONLY=0         # --wallpaper-only: just add the waves to Shader Wallpaper
 
 usage() {
     cat <<EOF
@@ -54,6 +55,8 @@ Usage: ./install.sh [options]
   --no-sounds       no menu sounds on the login, lock and Shut Down screens
   --sounds DIR      use your own sounds from DIR: move, select, back, error, open
                     (.wav, or .mp3/.flac/.ogg/.m4a/.opus if ffmpeg is installed)
+  --wallpaper-only  only add the XMB waves to the Shader Wallpaper plugin (your desktop
+                    wallpaper); nothing else is installed and no password is needed
   --choose          ask about each part one by one (good for a second user on the same PC)
   --lock-off-for-me use KDE's normal lock screen for your account (the XMB one stays for others)
   --lock-on-for-me  use the XMB lock screen for your account again
@@ -68,6 +71,7 @@ while [ $# -gt 0 ]; do
         --use-sddm) USE_SDDM=1 ;;
         --still-wave) STILL_WAVE=1 ;;
         --choose) CHOOSE=1 ;;
+        --wallpaper-only) WP_ONLY=1 ;;
         --no-sounds) SOUNDS=0 ;;
         --sounds) SOUND_DIR="${2:-}"; shift ;;
         --lock-off-for-me) LOCK_ME=off ;;
@@ -104,6 +108,32 @@ command -v kreadconfig6  >/dev/null || die "kreadconfig6 not found. This theme n
 
 PLASMA_VER="$(plasmashell --version 2>/dev/null | awk '{print $2}')"
 case "$PLASMA_VER" in 6.*) ;; *) die "KDE Plasma 6 is required (found: ${PLASMA_VER:-none})." ;; esac
+
+# ---------------------------------------------------------------- --wallpaper-only
+# Just the desktop wave: copy the shaders into Shader Wallpaper and stop. Nothing needs sudo.
+if [ "$WP_ONLY" = 1 ]; then
+    WP_DIR="$HOME/.local/share/plasma/wallpapers/$WP_ID"
+    WP_SHADERS="$WP_DIR/contents/ui/Shaders6"
+    [ -d "$WP_DIR" ] || die "Shader Wallpaper isn't installed. Right-click the desktop -> Desktop and Wallpaper -> Get New Plugins... -> search \"Shader Wallpaper\" (by y4my4my4m), install the plasma6 3.0.x zip, then run this again."
+    [ -n "$SHADER" ] || SHADER="$HERE/shaders/xmb-wave.frag.qsb"
+    [ -f "$SHADER" ] || die "Can't find the wave shader: $SHADER"
+    say "Adding the XMB waves to Shader Wallpaper"
+    mkdir -p "$WP_SHADERS"
+    install -m 644 "$SHADER" "$WP_SHADERS/xmb-wave.frag.qsb"
+    ok "xmb-wave (changes colour through the day)"
+    n=0
+    for f in "$HERE"/shaders/colours/*.frag.qsb; do
+        [ -f "$f" ] || continue
+        install -m 644 "$f" "$WP_SHADERS/"; n=$((n + 1))
+    done
+    [ "$n" -gt 0 ] && ok "$n single-colour waves (xmb-wave-blue, xmb-wave-red, ...)"
+    echo
+    echo "  Now right-click the desktop -> Desktop and Wallpaper, set Wallpaper type to"
+    echo "  Shader Wallpaper and pick an xmb-wave from its list. (Already open? Close it and reopen.)"
+    echo "  To remove them, delete the xmb-wave*.frag.qsb files from:"
+    echo "  $WP_SHADERS"
+    exit 0
+fi
 
 # which login manager starts at boot? (e.g. sddm.service, plasmalogin.service, gdm.service)
 DM_UNIT=""

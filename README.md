@@ -103,6 +103,7 @@ Add any of these after `./install.sh`, e.g. `./install.sh --no-splash --yes`:
 
 | Option | What it does | Affects |
 |---|---|---|
+| `--wallpaper-only` | **Only** add the XMB waves to the Shader Wallpaper plugin, for your desktop. Nothing else is installed and no password is needed ([see below](#the-wave-on-your-desktop-shader-wallpaper)) | Just you |
 | `--choose` | Ask about each part one by one, instead of installing everything | n/a |
 | `--no-login` | Skip installing the login screen. If it's already installed, everyone still sees it | Everyone |
 | `--no-lock` | Skip installing the lock screen. If it's already installed, everyone still sees it | Everyone |
@@ -157,6 +158,8 @@ The login and lock screens bring their own copy of the wave. For the **desktop**
 2. Search **Shader Wallpaper** ("Shader Wallpaper for Plasma6 by y4my4my4m") and click **Install**.
 3. It asks you to *Pick Your Installation Option*. Choose the newest, **`kde-shader-wallpaper-3.0.3-plasma6.zip`**. (The ⚠ icons are normal.)
 4. Run `./install.sh` (again, if you already ran it). It should say **XMB wave added to Shader Wallpaper** and **Syncing the Shader Wallpaper clock... Patched**.
+**Just want the wallpaper, not the rest of the theme?** Do steps 1-3, then run `./install.sh --wallpaper-only` instead of step 4. It only copies the waves into Shader Wallpaper.
+
 5. In Desktop and Wallpaper, set **Wallpaper type** to **Shader Wallpaper** and pick **xmb-wave** from its list. It changes colour through the day like the login and lock screens. For a wave that **stays one colour**, pick one of `xmb-wave-blue`, `-purple`, `-pink`, `-red`, `-gold`, `-green`, `-teal` or `-grey` instead.
 
 What the installer changes in the plugin (`~/.local/share/plasma/wallpapers/online.knowmad.shaderwallpaper/`):

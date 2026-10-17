@@ -48,7 +48,7 @@ sudo dnf install qt6-qtshadertools          # Fedora; on other distros look for 
 
 Then run `./install.sh` again so the login screen, lock screen and Shader Wallpaper get the new version.
 If you changed the palette, also run `shaders/make-colours.sh` to rebuild the single-colour versions.
-Only want the wave on your desktop, without the rest of the theme? Install Shader Wallpaper, then copy
-`xmb-wave.frag.qsb` and/or any file from `colours/` into
-`~/.local/share/plasma/wallpapers/online.knowmad.shaderwallpaper/contents/ui/Shaders6/`.
+Only want the wave on your desktop, without the rest of the theme? Install Shader Wallpaper, then run
+`./install.sh --wallpaper-only` (or copy `xmb-wave.frag.qsb` and/or any file from `colours/` into
+`~/.local/share/plasma/wallpapers/online.knowmad.shaderwallpaper/contents/ui/Shaders6/` yourself).
 (The path to `qsb` may differ: `rpm -ql qt6-qtshadertools | grep bin/qsb` shows where it is.)
