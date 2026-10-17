@@ -55,6 +55,9 @@ layout(std140, binding = 0) uniform buf {
 #define HOURS_PER_COLOUR 1.0
 // How dark it gets at night: 1.0 = no change, 0.6 = 40% darker at midnight
 #define NIGHT_BRIGHTNESS 0.65
+// Always one colour instead: -1 = follow the time of day; 0-7 = that palette colour all day, at
+// full daytime brightness. shaders/make-colours.sh builds one version of each into shaders/colours/
+#define FIXED_COLOUR -1
 
 // The palette, in order. Each is a mid-dark shade so the white wave stands out.
 // (Written as if-checks rather than an array, so it compiles for every target.)
@@ -178,6 +181,9 @@ float dither(vec2 pos)
 // Current base colour: steps through the palette, blending smoothly
 vec3 cycle_colour()
 {
+#if FIXED_COLOUR >= 0
+    return palette(FIXED_COLOUR);
+#endif
     float steps = (iDate.w / 3600.0) / HOURS_PER_COLOUR;
     int idx = int(mod(floor(steps), float(PALETTE_SIZE)));
     int nxt = int(mod(float(idx + 1), float(PALETTE_SIZE)));
@@ -200,6 +206,9 @@ vec3 render(vec2 U)
     float q = iDate.w / 86400.0;
     float day = 0.5 - 0.5 * cos(2. * M_PI * q);
     float bright = mix(NIGHT_BRIGHTNESS, 1.0, day);
+#if FIXED_COLOUR >= 0
+    bright = 1.0;
+#endif
 
     // Four slightly different shades of the current colour, one per corner,
     // like the original's subtle gradient

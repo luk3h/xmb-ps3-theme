@@ -8,6 +8,8 @@ Shader Wallpaper plugin) the desktop. It's a compiled Qt 6 shader. The source co
 | `xmb-wave.frag` | Source of the shipped `xmb-wave.frag.qsb`. The background drifts through a palette of colours, one per hour, and is dimmer at night |
 | `xmb-wave-daynight.frag` | llmciv's original colours: dark grey at night, the classic XMB blue by day |
 | `xmb-wave.frag.qsb` | The compiled shader the theme uses |
+| `colours/xmb-wave-<colour>.frag.qsb` | Single-colour versions for your desktop (blue, purple, pink, red, gold, green, teal, grey). They stay one colour all day, at full brightness |
+| `make-colours.sh` | Rebuilds `colours/` from `xmb-wave.frag` (needs `qsb`, see below) |
 
 ## Credits
 
@@ -45,4 +47,8 @@ sudo dnf install qt6-qtshadertools          # Fedora; on other distros look for 
 | `xmb-wave.frag` | The source to compile |
 
 Then run `./install.sh` again so the login screen, lock screen and Shader Wallpaper get the new version.
+If you changed the palette, also run `shaders/make-colours.sh` to rebuild the single-colour versions.
+Only want the wave on your desktop, without the rest of the theme? Install Shader Wallpaper, then copy
+`xmb-wave.frag.qsb` and/or any file from `colours/` into
+`~/.local/share/plasma/wallpapers/online.knowmad.shaderwallpaper/contents/ui/Shaders6/`.
 (The path to `qsb` may differ: `rpm -ql qt6-qtshadertools | grep bin/qsb` shows where it is.)

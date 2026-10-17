@@ -428,6 +428,11 @@ if [ -n "$SHADER" ] && [ -d "$WP_SHADERS" ] && [ ! -f "$WP_SHADERS/xmb-wave.frag
     cp "$SHADER" "$WP_SHADERS/xmb-wave.frag.qsb"
     ok "XMB wave added to Shader Wallpaper (pick it in Desktop and Wallpaper settings)"
 fi
+# the single-colour versions (xmb-wave-blue, xmb-wave-red, ...), for a wave that stays one colour
+if [ -d "$WP_SHADERS" ] && ls "$HERE"/shaders/colours/*.frag.qsb >/dev/null 2>&1; then
+    for f in "$HERE"/shaders/colours/*.frag.qsb; do install -m 644 "$f" "$WP_SHADERS/"; done
+    ok "Single-colour XMB waves added to Shader Wallpaper (xmb-wave-blue, xmb-wave-red, ...)"
+fi
 
 # ---------------------------------------------------------------- Shader Wallpaper clock sync
 if [ "$DO_SYNC" = 1 ]; then

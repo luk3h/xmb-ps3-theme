@@ -157,13 +157,14 @@ The login and lock screens bring their own copy of the wave. For the **desktop**
 2. Search **Shader Wallpaper** ("Shader Wallpaper for Plasma6 by y4my4my4m") and click **Install**.
 3. It asks you to *Pick Your Installation Option*. Choose the newest, **`kde-shader-wallpaper-3.0.3-plasma6.zip`**. (The ⚠ icons are normal.)
 4. Run `./install.sh` (again, if you already ran it). It should say **XMB wave added to Shader Wallpaper** and **Syncing the Shader Wallpaper clock... Patched**.
-5. In Desktop and Wallpaper, set **Wallpaper type** to **Shader Wallpaper** and pick **xmb-wave** from its list.
+5. In Desktop and Wallpaper, set **Wallpaper type** to **Shader Wallpaper** and pick **xmb-wave** from its list. It changes colour through the day like the login and lock screens. For a wave that **stays one colour**, pick one of `xmb-wave-blue`, `-purple`, `-pink`, `-red`, `-gold`, `-green`, `-teal` or `-grey` instead.
 
 What the installer changes in the plugin (`~/.local/share/plasma/wallpapers/online.knowmad.shaderwallpaper/`):
 
 | File | Change | Undone by `./uninstall.sh`? |
 |---|---|---|
 | `contents/ui/Shaders6/xmb-wave.frag.qsb` | The XMB wave added to the plugin's shader list | No, on purpose: it may be your wallpaper. Delete it yourself if you like |
+| `contents/ui/Shaders6/xmb-wave-*.frag.qsb` | The 8 single-colour versions (from `shaders/colours/`) | No, same reason |
 | `contents/ui/main.qml` | One line, so the desktop wave uses the same clock as the login/lock wave (no jump when you unlock). Original saved as `main.qml.xmb-orig` | Yes |
 
 **Shader Wallpaper version 4** (built from source on [GitHub](https://github.com/y4my4my4m/kde-shader-wallpaper), not on the KDE Store) works differently, so the installer can't add the wave to it. Use its **Import** button instead and choose `shaders/xmb-wave.frag` from this folder. The clock sync isn't available there.
