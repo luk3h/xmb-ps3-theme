@@ -9,6 +9,8 @@ A PlayStation 3 XMB-style **login screen**, **lock screen** and **Shut Down scre
 - Smooth fades between the lock screen, login screen and desktop, across multiple monitors
 - Soft PS3-style menu sounds (original, made for this theme; `--no-sounds` turns them off)
 
+> **Just want the wallpaper?** Run `./install.sh --wallpaper-only` for the live XMB wave on KDE ([see how](#the-wave-on-your-desktop-shader-wallpaper)), or grab the 4K stills and videos for any OS from the [latest release](https://github.com/luk3h/xmb-ps3-theme/releases/latest).
+
 
 ## Screenshots
 
