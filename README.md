@@ -221,6 +221,7 @@ If one monitor blinks or arrives late when switching between the lock screen, lo
 
 ## Credits & licence
 
+- **How it was made:** designed, tested and maintained by **luk3h**, with the code written mostly by **Claude** (Anthropic's AI). I decided how every screen should look, behave and sound, tested each change on real hardware and in a VM, and tracked down the bugs; Claude wrote most of the QML and scripts. Bug reports and pull requests are welcome.
 - **XMB wave shader** (`shaders/`): originally ["PS3 Menu effect"](https://www.shadertoy.com/view/tXy3DK) by **[int_45h](https://www.shadertoy.com/user/int_45h)**, who released it freely ("do whatever you want with this shader... if you can leave a comment or something or hit me up, that'd be dope"). Updated as ["Ps3 XMB 3.0 Background"](https://www.shadertoy.com/view/fcf3Dn) by **[llmciv](https://www.shadertoy.com/user/llmciv)** (dithering, smoother raymarching, anti-aliasing, time-of-day colours). Starfield based on xaot88's, hash function after Dave Hoskins. Converted for Qt 6 with an hourly colour palette for this theme. The source is included; see [`shaders/README.md`](shaders/README.md) for the full credits and how to change the wave. Thank you, int_45h and llmciv! If you use this theme, go leave them a comment on Shadertoy.
 - **Menu sounds** (`sounds/`): original, generated from sine tones for this theme (see [`sounds/README.md`](sounds/README.md)). No Sony audio is used.
 - Everything else is licensed under the **GNU GPL v3 or later** (see `LICENSE`).
