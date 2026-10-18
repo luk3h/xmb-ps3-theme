@@ -190,6 +190,14 @@ The live wave is drawn by your graphics card many times a second, so it uses mor
 - **Video loop:** smooth, at about half the extra power, because your graphics card plays video with a separate, low-power decoder. With more than one monitor, use a **single-colour** loop from `xmb-wave-colour-loops-4k.zip` (the same one on each screen); the all-colours loop starts at a different point on each monitor, so the colours won't match. On Fedora, MP4 playback may need `sudo dnf install gstreamer1-plugin-openh264`.
 - **Still image:** no extra power at all.
 
+**Using a video loop instead of the live wave:**
+
+1. Download `xmb-wave-loop-4k.mp4` (all colours) or `xmb-wave-colour-loops-4k.zip` (one colour each; unzip it) from the [latest release](https://github.com/luk3h/xmb-ps3-theme/releases/latest).
+2. Right-click the desktop → **Desktop and Wallpaper** → **Get New Plugins...**, search **Smart Video Wallpaper Reborn** and click **Install**.
+3. Set **Wallpaper type** to **Smart Video Wallpaper Reborn**. On its **Videos** tab, click **Pick a file...**, choose your video and click **Apply**. With more than one monitor, pick the same single-colour video on each.
+
+On **Windows**, the same videos work with Wallpaper Engine or the free Lively Wallpaper (drag the video into Lively to add it).
+
 Shader Wallpaper already pauses the live wave while a window is maximised or full screen, so it costs nothing while you're gaming. Its settings have stricter options, like pausing whenever a window is open.
 
 ### Using your own sounds
