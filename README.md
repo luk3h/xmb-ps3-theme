@@ -176,6 +176,22 @@ What the installer changes in the plugin (`~/.local/share/plasma/wallpapers/onli
 
 **In a virtual machine**, keep a normal image wallpaper. The installer makes the login and lock wave still in VMs, but the desktop wallpaper always animates, and without a graphics card that makes the whole VM sluggish.
 
+### Power use
+
+The live wave is drawn by your graphics card many times a second, so it uses more power than a still wallpaper. Measured on a Radeon RX 9070 XT (4K 240 Hz + 1440p monitors, idle desktop, no windows open):
+
+| Desktop wallpaper | Graphics card power | Extra over a still image |
+|---|---|---|
+| Still image ([4K stills](https://github.com/luk3h/xmb-ps3-theme/releases/latest)) | ~38 W | |
+| Video loop ([4K loops](https://github.com/luk3h/xmb-ps3-theme/releases/latest), Smart Video Wallpaper Reborn) | ~46 W | ~8 W |
+| Live wave (Shader Wallpaper) | ~56 W | ~18 W |
+
+- **Live wave:** the best looking. It follows the time of day and stays in sync across monitors and with the login and lock screens.
+- **Video loop:** smooth, at about half the extra power, because your graphics card plays video with a separate, low-power decoder. With more than one monitor, use a **single-colour** loop from `xmb-wave-colour-loops-4k.zip` (the same one on each screen); the all-colours loop starts at a different point on each monitor, so the colours won't match. On Fedora, MP4 playback may need `sudo dnf install gstreamer1-plugin-openh264`.
+- **Still image:** no extra power at all.
+
+Shader Wallpaper already pauses the live wave while a window is maximised or full screen, so it costs nothing while you're gaming. Its settings have stricter options, like pausing whenever a window is open.
+
 ### Using your own sounds
 
 The built-in sounds are original ones made for this theme. To use your own, put the files in this repo's **`custom-sounds/`** folder, named `move`, `select`, `back`, `error` and `open` (any you leave out keep the built-in sound), then run `./install.sh`. It picks them up automatically, converting MP3/FLAC/OGG to WAV if `ffmpeg` is installed. See [`custom-sounds/README.md`](custom-sounds/README.md) for the details.
