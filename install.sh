@@ -298,7 +298,7 @@ if [ "$DO_SYNC" = 0 ]; then
 elif [ -f "$WP_HOME_MAIN" ]; then
     echo "    Wave clock sync ......... yes"
 else
-    echo "    Wave clock sync ......... skipped (Shader Wallpaper isn't installed - see the README, then run this again)"
+    echo "    Wave clock sync ......... skipped (Shader Wallpaper isn't installed - see docs/wallpaper.md, then run this again)"
 fi
 echo "    Copy monitor/audio ...... $([ $DO_DISPLAYS = 1 ] && [ $DO_LOGIN = 1 ] && echo yes || echo no)"
 echo "    Menu sounds ............. $([ $SOUNDS = 0 ] && echo no || { [ -n "$CUSTOM_SOUNDS" ] && echo "yours:$FOUND (from $SOUND_DIR)" || echo yes; })"
