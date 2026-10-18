@@ -48,6 +48,22 @@ A PlayStation 3 XMB-style **login screen**, **lock screen** and **Shut Down scre
 
 The wave changes colour through the day, like the PS3: each shot shows a different hour.
 
+## Menu sounds
+
+Every screen has soft PS3-style menu sounds, original ones made for this theme from plain sine tones (no Sony audio):
+
+| Sound | Plays when |
+|---|---|
+| **open** | The login or lock screen appears |
+| **move** | Moving between users or options |
+| **select** | Signing in, unlocking, choosing an option |
+| **back** | Closing a panel, choosing No |
+| **error** | A wrong or empty password |
+
+**Use your own sounds:** put files named `move`, `select`, `back`, `error` and `open` (WAV, or MP3/FLAC/OGG with `ffmpeg` installed) in the `custom-sounds/` folder and run `./install.sh`. Any you leave out keep the built-in sound. [More on sounds](docs/options.md#using-your-own-sounds)
+
+Don't want any? Install with `--no-sounds`.
+
 ## Install
 
 You need **KDE Plasma 6** on Wayland and **SDDM** for the login screen. On **Fedora 44+**, which uses Plasma Login Manager, add `--use-sddm` and the installer switches to SDDM for you.

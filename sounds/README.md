@@ -23,4 +23,4 @@ done
 ```
 
 and run `./install.sh` again. Turn the sounds off with `./install.sh --no-sounds`, or use your own files with
-`./install.sh --sounds DIR` (see "Using your own sounds" in the main README).
+`./install.sh --sounds DIR` (see [Using your own sounds](../docs/options.md#using-your-own-sounds)).
