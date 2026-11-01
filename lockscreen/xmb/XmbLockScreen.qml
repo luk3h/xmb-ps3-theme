@@ -118,14 +118,32 @@ Item {
         quickRetry.restart()
         sendPending()
     }
+    property string lastSent: ""
     function sendPending() {
         if (!hasPending || !pamReady) return
         hasPending = false
         pamReady = false
+        lastSent = pending
         authenticator.respond(pending)
         pending = ""
+        staleCheck.restart()
+    }
+    // a reply that gets no answer went to a stale PAM conversation: restart it once and resend
+    Timer {
+        id: staleCheck
+        interval: 4000
+        onTriggered: {
+            if (!root.busy || root.lastSent === "" || root.retries >= 1) return
+            console.warn("xmb: no answer from PAM, restarting and resending")
+            root.retries++
+            root.pending = root.lastSent
+            root.hasPending = true
+            root.pamReady = false
+            authenticator.startAuthenticating()
+        }
     }
     function resetAuth() {
+        staleCheck.stop(); lastSent = ""
         busy = false
         hasPending = false
         pending = ""
@@ -203,6 +221,7 @@ Item {
         function onFailed(kind) {
             if (kind !== 0) return            // ignore fingerprint/smartcard noise
             watchdog.stop()
+            staleCheck.stop(); lastSent = ""
             busy = false
             hasPending = false
             pending = ""
@@ -214,7 +233,7 @@ Item {
             statusTimer.restart()
             restartTimer.restart()
         }
-        function onSucceeded() { unlockFade.start() }
+        function onSucceeded() { staleCheck.stop(); lastSent = ""; unlockFade.start() }
         function onPromptForSecretChanged() {
             pamReady = true
             if (hasPending) sendPending()
