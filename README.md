@@ -60,7 +60,7 @@ Every screen has soft PS3-style menu sounds, original ones made for this theme f
 | **back** | Closing a panel, choosing No |
 | **error** | A wrong or empty password |
 
-**Use your own sounds:** put files named `move`, `select`, `back`, `error` and `open` (WAV, or MP3/FLAC/OGG with `ffmpeg` installed) in the `custom-sounds/` folder and run `./install.sh`. Any you leave out keep the built-in sound. [More on sounds](docs/options.md#using-your-own-sounds)
+**Use your own sounds:** put files named `move`, `select`, `back`, `error` and `open` (WAV, or MP3/FLAC/OGG/M4A/Opus with `ffmpeg` installed) in the `custom-sounds/` folder and run `./install.sh`. Any you leave out keep the built-in sound. [More on sounds](docs/options.md#using-your-own-sounds)
 
 Don't want any? Install with `--no-sounds`.
 
@@ -86,7 +86,8 @@ For the wave on your **desktop** too, install the free Shader Wallpaper plugin f
 |---|---|---|
 | Up / Down | Choose a user | Move between you and **Other User…** |
 | Enter | Sign in | Unlock |
-| Tab | Options (session, Sleep, Restart, Turn Off) | Options (Sleep, Hibernate, Restart, Turn Off) |
+| Tab | Options (session, Sleep, Restart, Turn Off) | Options (Sleep, Hibernate if your PC supports it, Restart, Turn Off) |
+| Esc | Options | *Turns the monitors off (a built-in KDE shortcut)* |
 
 ## Uninstall
 

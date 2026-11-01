@@ -38,7 +38,7 @@ What the installer changes in the plugin (`~/.local/share/plasma/wallpapers/onli
 |---|---|---|
 | Up / Down | Choose a user | Move between you and **Other User…** |
 | Enter | Sign in | Unlock (or go to the login screen on **Other User…**) |
-| Tab | Options (session, Sleep, Restart, Turn Off) | Options (Sleep, Hibernate, Restart, Turn Off) |
+| Tab | Options (session, Sleep, Restart, Turn Off) | Options (Sleep, Hibernate if your PC supports it, Restart, Turn Off) |
 | Esc | Options | *Turns the monitors off (a built-in KDE shortcut)* |
 
 ## The lock screen (and staying safe)
@@ -46,6 +46,7 @@ What the installer changes in the plugin (`~/.local/share/plasma/wallpapers/onli
 Since Plasma 6.1, the lock screen isn't part of any theme. Plasma always loads one fixed file, `/usr/share/plasma/shells/org.kde.plasma.desktop/contents/lockscreen/LockScreen.qml`. The installer saves the original as `LockScreen.breeze.qml` and puts a small loader in its place. A systemd path unit (`xmb-lockscreen.path`) re-applies it automatically if a Plasma update replaces the file.
 
 - If the XMB lock screen ever fails to load, Plasma shows its own basic fallback lock, and your password still works.
+- If unlocking takes a few seconds after the screen locked on its own, the lock screen is recovering a password check that got stuck: it restarts the check and resends your password once. You'll see `xmb: no answer from PAM, restarting and resending` in `journalctl`; please include that line in bug reports.
 - If you're ever stuck on a lock screen: press **Ctrl+Alt+F3**, log in, run `loginctl unlock-sessions`, then `sudo /usr/local/bin/xmb-lockscreen-restore`.
 
 ## Multiple monitors
