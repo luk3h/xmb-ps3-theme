@@ -44,10 +44,11 @@ Rectangle {
     Timer { interval: 100; running: true; onTriggered: root.grabFocus() }
     // at startup KDE may not hand over the keyboard straight away, so keep asking (for up to 15 s)
     property real startedAt: Date.now()
+    readonly property bool winActive: Window.active
     Timer {
         id: focusRetry
         interval: 400; repeat: true
-        running: root.showUi && !Window.active
+        running: root.showUi && !root.winActive
         onTriggered: { if (Date.now() - root.startedAt > 15000) stop(); else root.grabFocus() }
     }
     function focusRight() {
