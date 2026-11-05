@@ -60,9 +60,10 @@ Item {
     // the session you're in (shown greyed out: it can only be changed from the login screen)
     readonly property string sessionName: Qt.platform.pluginName === "xcb" ? "Plasma (X11)" : "Plasma (Wayland)"
 
-    // PAM (KDE's password checker) only accepts a password after it has asked for one.
-    // After a wrong password it pauses briefly, so we hold the password until it's ready.
-    property bool pamReady: true      // ready at first; after a failure we wait for a new prompt
+    // PAM (KDE's password checker) only accepts a password while it is asking for one.
+    // Plasma 6.8: the checker's worker can still be starting when the lock screen appears, so
+    // (like KDE's own lock screen) we keep nudging it with startAuthenticating() every second.
+    // A password sent when PAM isn't asking is simply ignored, so we resend it until PAM answers.
     property int retries: 0
     property string pending: ""
     property bool hasPending: false
@@ -105,7 +106,7 @@ Item {
 
     function unlock() {
         if (!isPrimary) return
-        if (!authStarted) { startAuth(); pamReady = false }   // checker wasn't running: start it, send when it asks
+        startAuth()
         if (busy) return
         if (password.text.length === 0) { statusText = "Type your password first."; statusTimer.restart(); password.shake(false); sfxPlay("error"); return }
         busy = true
@@ -115,39 +116,37 @@ Item {
         hasPending = true
         retries = 0
         watchdog.restart()
-        quickRetry.restart()
         sendPending()
     }
-    property string lastSent: ""
+    // send the password; if PAM wasn't asking yet it ignores it, and resendTimer tries again
     function sendPending() {
-        if (!hasPending || !pamReady) return
-        hasPending = false
-        pamReady = false
-        lastSent = pending
+        if (!busy || !hasPending) return
+        // no startAuthenticating() here: restarting PAM while it's asking cancels that check,
+        // which reports a failure ("password incorrect") even though the password is right
         authenticator.respond(pending)
-        pending = ""
-        staleCheck.restart()
+        resendTimer.restart()
     }
-    // a reply that gets no answer went to a stale PAM conversation: restart it once and resend
+    // no answer yet? PAM probably wasn't asking - send again (up to ~15 s)
     Timer {
-        id: staleCheck
-        interval: 4000
+        id: resendTimer
+        interval: 3000      // long enough that a normal password check has finished
         onTriggered: {
-            if (!root.busy || root.lastSent === "" || root.retries >= 1) return
-            console.warn("xmb: no answer from PAM, restarting and resending")
+            if (!root.busy || !root.hasPending) return
+            if (root.retries >= 10) return              // watchdog takes over from here
             root.retries++
-            root.pending = root.lastSent
-            root.hasPending = true
-            root.pamReady = false
-            authenticator.startAuthenticating()
+            console.warn("xmb: no answer from PAM yet, nudging it and resending (" + root.retries + ")")
+            authenticator.startAuthenticating()         // only nudge when PAM has gone quiet
+            root.sendPending()
         }
     }
-    function resetAuth() {
-        staleCheck.stop(); lastSent = ""
-        busy = false
+    function clearPending() {
+        resendTimer.stop()
         hasPending = false
         pending = ""
-        pamReady = false
+    }
+    function resetAuth() {
+        clearPending()
+        busy = false
         authenticator.startAuthenticating()
         if (!optionsOpen) password.focusInput()
     }
@@ -219,49 +218,58 @@ Item {
     Connections {
         target: authenticator
         function onFailed(kind) {
+            console.warn("xmb: PAM failed, kind " + kind + ", busy " + root.busy)
             if (kind !== 0) return            // ignore fingerprint/smartcard noise
-            watchdog.stop()
-            staleCheck.stop(); lastSent = ""
-            busy = false
-            hasPending = false
-            pending = ""
-            pamReady = false
-            password.clear()
-            statusText = "The password is incorrect."
-            password.shake(true)
-            root.sfxPlay("error")
-            statusTimer.restart()
-            restartTimer.restart()
+            if (!root.busy) { authenticator.startAuthenticating(); return }   // not checking a password: nothing to show
+            // don't send this password again, but wait a moment before saying "incorrect":
+            // a stale check can report failure just before the real one succeeds
+            root.clearPending()
+            failShow.restart()
         }
-        function onSucceeded() { staleCheck.stop(); lastSent = ""; unlockFade.start() }
+        function onSucceeded() {
+            console.warn("xmb: PAM succeeded")
+            failShow.stop()
+            root.clearPending()
+            watchdog.stop()
+            authenticator.stopAuthenticating()   // KDE 6.8 does this to stop pending checks timing out
+            unlockFade.start()
+        }
         function onPromptForSecretChanged() {
-            pamReady = true
-            if (hasPending) sendPending()
+            // PAM is asking now: if a password is waiting, send it straight away
+            if (root.busy && root.hasPending) root.sendPending()
             else if (!root.optionsOpen) password.focusInput()
         }
     }
     Timer { id: statusTimer; interval: 3500; onTriggered: { interval = 3500; if (!busy) statusText = "" } }
-    // ask PAM for a new password prompt after a failure
-    Timer { id: restartTimer; interval: 3000; onTriggered: if (root.isPrimary) authenticator.startAuthenticating() }
-    // password still waiting to be sent after 5 s? ask KDE's checker to start again; it sends when ready
+    // shows "incorrect" only if no success arrives within 0.8 s of a failure
     Timer {
-        id: quickRetry
-        interval: 5000
-        onTriggered: if (root.busy && root.hasPending) { root.authStarted = true; authenticator.startAuthenticating() }
+        id: failShow
+        interval: 800
+        onTriggered: {
+            watchdog.stop()
+            root.busy = false
+            password.clear()
+            root.statusText = "The password is incorrect."
+            password.shake(true)
+            root.sfxPlay("error")
+            statusTimer.restart()
+            authenticator.startAuthenticating()   // same as KDE's own lock screen: ask again straight away
+        }
+    }
+    // heartbeat: keep KDE's password checker running while locked (KDE's own lock screen does this
+    // every second; without it, a check started before the worker was ready never comes back)
+    Timer {
+        interval: 1000
+        repeat: true
+        running: root.isPrimary && !root.busy && !unlockFade.running
+        onTriggered: authenticator.startAuthenticating()
     }
     // safety net: if nothing happens, reset so you can always type again
     Timer {
         id: watchdog
-        interval: 30000
+        interval: 20000
         onTriggered: {
             if (!busy) return
-            if (hasPending && retries < 1) {
-                // password never got sent: ask PAM to prompt again, then it sends automatically
-                retries++
-                authenticator.startAuthenticating()
-                watchdog.restart()
-                return
-            }
             statusText = "Please try again."
             statusTimer.restart()
             password.clear()
