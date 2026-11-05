@@ -1,0 +1,8 @@
+#!/bin/bash
+# Puts KDE's original Shut Down screen back and stops re-applying the XMB loader.
+D=/usr/share/plasma/shells/org.kde.plasma.desktop/contents/logout
+systemctl disable --now xmb-logout.path 2>/dev/null
+if [ -f "$D/Logout.breeze.qml" ]; then
+    mv "$D/Logout.breeze.qml" "$D/Logout.qml"
+fi
+echo "KDE's original Shut Down screen restored."

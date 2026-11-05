@@ -6,6 +6,7 @@
 #   login      SDDM login screen            -> /usr/share/sddm/themes/xmb-ps3
 #   lock       KDE lock screen              -> /usr/local/share/xmb-lockscreen (+ auto re-apply after updates)
 #   leave      Shut Down / Restart screen   -> ~/.local/share/plasma/look-and-feel/com.github.luk3h.xmbps3
+#                                              (+ on Plasma 6.8+ a shared loader, /usr/local/share/xmb-logout)
 #   splash     black login splash           -> same package as "leave"
 #   sync       wave clock sync for the "Shader Wallpaper" plugin (desktop, lock and login waves line up)
 #   displays   copy your monitor setup (resolution / refresh rate) to the login screen
@@ -20,6 +21,7 @@ STATE="$STATE_DIR/backup.conf"
 LNF_ID="com.github.luk3h.xmbps3"
 LNF_DIR="$HOME/.local/share/plasma/look-and-feel/$LNF_ID"
 SHELL_LOCK="/usr/share/plasma/shells/org.kde.plasma.desktop/contents/lockscreen"
+SHELL_LOGOUT="/usr/share/plasma/shells/org.kde.plasma.desktop/contents/logout"   # Plasma 6.8+
 SDDM_THEME_DIR="/usr/share/sddm/themes/xmb-ps3"
 SDDM_ZZ="/etc/sddm.conf.d/zz-xmb-ps3.conf"
 WP_ID="online.knowmad.shaderwallpaper"
@@ -441,6 +443,18 @@ if [ "$DO_LEAVE" = 1 ] || [ "$DO_SPLASH" = 1 ]; then
         save_state lookandfeel "$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)"
         kwriteconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage "$LNF_ID"
         ok "Shut Down screen installed (the rest of your desktop falls back to Breeze)"
+        # Plasma 6.8+ loads the Shut Down screen from the desktop shell instead of your look-and-feel.
+        # A small shared loader there shows each user their own XMB screen, or KDE's if they don't have it.
+        if [ -f "$SHELL_LOGOUT/Logout.qml" ]; then
+            sudo mkdir -p /usr/local/share/xmb-logout
+            sudo install -m 644 "$HERE/logout/Logout-shim.qml" /usr/local/share/xmb-logout/
+            sudo install -m 755 "$HERE/logout/xmb-logout-apply" "$HERE/logout/xmb-logout-restore" /usr/local/bin/
+            sudo install -m 644 "$HERE/logout/xmb-logout.path" "$HERE/logout/xmb-logout.service" /etc/systemd/system/
+            sudo /usr/local/bin/xmb-logout-apply
+            sudo systemctl daemon-reload
+            sudo systemctl enable --now xmb-logout.path >/dev/null 2>&1
+            ok "Shut Down screen loader added for Plasma 6.8+ (re-applied automatically after Plasma updates)"
+        fi
     fi
     if [ "$DO_SPLASH" = 1 ]; then
         save_state splash_engine "$(kreadconfig6 --file ksplashrc --group KSplash --key Engine)"

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Puts the XMB Shut Down screen loader in place of KDE's (Plasma 6.8+). Safe to run any number of times.
+# Plasma 6.7 and older load the Shut Down screen from your look-and-feel instead, so there's nothing to do.
+D=/usr/share/plasma/shells/org.kde.plasma.desktop/contents/logout
+SRC=/usr/local/share/xmb-logout
+F="$D/Logout.qml"
+[ -f "$F" ] || { echo "No shell Shut Down screen here (Plasma 6.7 or older) - nothing to do."; exit 0; }
+# already ours? just refresh the loader (it may be a newer version)
+if grep -q "XMB-LOGOUT-SHIM" "$F"; then install -m 644 "$SRC/Logout-shim.qml" "$F"; exit 0; fi
+# keep KDE's (possibly freshly updated) original - but never save an XMB screen copied in by hand as "KDE's"
+if grep -q "XMB PS3-style" "$F"; then
+    [ -f "$D/Logout.breeze.qml" ] || { echo "Logout.qml is an XMB copy and KDE's original is missing."; echo "Run: sudo dnf reinstall plasma-desktop   then run this again."; exit 1; }
+else
+    cp "$F" "$D/Logout.breeze.qml"
+fi
+install -m 644 "$SRC/Logout-shim.qml" "$F"
+echo "XMB Shut Down screen applied."

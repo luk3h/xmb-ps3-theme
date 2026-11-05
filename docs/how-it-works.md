@@ -8,7 +8,7 @@
 |---|---|---|
 | **Login screen** | SDDM theme | `/usr/share/sddm/themes/xmb-ps3` |
 | **Lock screen** | Plasma's lock screen (Meta+L) | `/usr/local/share/xmb-lockscreen`, swapped into Plasma's lock screen folder |
-| **Shut Down screen** | The Restart / Shut Down / Log Out screen | `~/.local/share/plasma/look-and-feel/com.github.luk3h.xmbps3` |
+| **Shut Down screen** | The Restart / Shut Down / Log Out screen | `~/.local/share/plasma/look-and-feel/com.github.luk3h.xmbps3`. On Plasma 6.8+ also a small shared loader in `/usr/local/share/xmb-logout`, swapped into Plasma's Shut Down screen folder (see below) |
 | **Login splash** | The splash while your desktop loads (a plain black one, so the desktop fades in on every monitor at once) | same package as above |
 | **Wave clock sync** *(optional)* | One line in the Shader Wallpaper plugin, so the desktop, lock and login waves line up | your Shader Wallpaper plugin folder |
 
@@ -48,6 +48,13 @@ Since Plasma 6.1, the lock screen isn't part of any theme. Plasma always loads o
 - If the XMB lock screen ever fails to load, Plasma shows its own basic fallback lock, and your password still works.
 - If unlocking takes a few seconds after the screen locked on its own, the lock screen is recovering a password check that got stuck: it restarts the check and resends your password once. You'll see `xmb: no answer from PAM, restarting and resending` in `journalctl`; please include that line in bug reports.
 - If you're ever stuck on a lock screen: press **Ctrl+Alt+F3**, log in, run `loginctl unlock-sessions`, then `sudo /usr/local/bin/xmb-lockscreen-restore`.
+
+## The Shut Down screen on Plasma 6.8+
+
+Up to Plasma 6.7, the Shut Down screen came from your look-and-feel, so the XMB one was just yours. From 6.8, Plasma loads it from one fixed file for everyone, `/usr/share/plasma/shells/org.kde.plasma.desktop/contents/logout/Logout.qml`, and ignores the look-and-feel's copy (Ctrl+Alt+Del then does nothing with the XMB theme). The installer handles this the same way as the lock screen: it saves the original as `Logout.breeze.qml` and puts a small loader in its place, and `xmb-logout.path` re-applies it after Plasma updates.
+
+- The loader keeps it per user: anyone with the XMB Shut Down screen installed gets it, everyone else gets KDE's.
+- To put KDE's back: `sudo /usr/local/bin/xmb-logout-restore`.
 
 ## Multiple monitors
 

@@ -1,0 +1,6 @@
+[Unit]
+Description=Apply the XMB Shut Down screen
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/xmb-logout-apply

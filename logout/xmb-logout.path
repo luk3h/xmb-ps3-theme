@@ -1,0 +1,8 @@
+[Unit]
+Description=Re-apply the XMB Shut Down screen after Plasma updates replace it
+
+[Path]
+PathChanged=/usr/share/plasma/shells/org.kde.plasma.desktop/contents/logout/Logout.qml
+
+[Install]
+WantedBy=multi-user.target

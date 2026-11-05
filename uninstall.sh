@@ -16,7 +16,8 @@ ok()   { printf '\033[1;32m  ✓\033[0m %s\n' "$*"; }
 [ "$(id -u)" -ne 0 ] || { echo "Run this as your normal user, not with sudo."; exit 1; }
 
 # --no-login / --no-lock: leave the shared login and lock screens in place (e.g. when another user
-# on this PC only wants to remove their own Shut Down screen and splash - no admin password needed)
+# on this PC only wants to remove their own Shut Down screen and splash - no admin password needed).
+# --no-lock also keeps the shared Shut Down loader (Plasma 6.8+); without your own copy it shows KDE's.
 DO_LOGIN=1 DO_LOCK=1
 for a in "$@"; do
     case "$a" in
@@ -34,6 +35,7 @@ say "Removing the XMB PS3 theme"
 # the shared screens need admin rights - check first, so a non-admin isn't left half-uninstalled
 NEED_ADMIN=0
 [ "$DO_LOCK" = 1 ] && [ -x /usr/local/bin/xmb-lockscreen-restore ] && NEED_ADMIN=1
+[ "$DO_LOCK" = 1 ] && [ -x /usr/local/bin/xmb-logout-restore ] && NEED_ADMIN=1
 [ "$DO_LOGIN" = 1 ] && { [ -d /usr/share/sddm/themes/xmb-ps3 ] || [ -f /etc/sddm.conf.d/zz-xmb-ps3.conf ] || [ -n "$(get display_manager)" ]; } && NEED_ADMIN=1
 if [ "$NEED_ADMIN" = 1 ] && ! sudo -v; then
     echo
@@ -50,6 +52,16 @@ if [ "$DO_LOCK" = 1 ] && [ -x /usr/local/bin/xmb-lockscreen-restore ]; then
     sudo rm -f /usr/local/bin/xmb-lockscreen-apply /usr/local/bin/xmb-lockscreen-restore
     sudo rm -rf /usr/local/share/xmb-lockscreen
     ok "Lock screen restored to KDE's original"
+fi
+
+# Shut Down screen loader (Plasma 6.8+). Shared like the lock screen, so --no-lock keeps it too
+if [ "$DO_LOCK" = 1 ] && [ -x /usr/local/bin/xmb-logout-restore ]; then
+    sudo /usr/local/bin/xmb-logout-restore
+    sudo rm -f /etc/systemd/system/xmb-logout.path /etc/systemd/system/xmb-logout.service
+    sudo systemctl daemon-reload
+    sudo rm -f /usr/local/bin/xmb-logout-apply /usr/local/bin/xmb-logout-restore
+    sudo rm -rf /usr/local/share/xmb-logout
+    ok "Shut Down screen restored to KDE's original"
 fi
 
 # login screen
